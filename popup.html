@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <title>X – oma ulkoasu</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --p-bg: #17171a;
+      --p-rivi: #1f1f23;
+      --p-reuna: rgba(255, 255, 255, 0.08);
+      --p-teksti: #e7e9ea;
+      --p-himmea: #9aa0a6;
+      --p-korostus: #7c9cff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      width: 320px;
+      margin: 0;
+      padding: 14px;
+      background: var(--p-bg);
+      color: var(--p-teksti);
+      font: 13px/1.4 -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+    }
+    .rivi {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 9px;
+      margin-bottom: 5px;
+      border: 1px solid var(--p-reuna);
+      border-radius: 10px;
+      background: var(--p-rivi);
+    }
+    .rivi label { color: var(--p-himmea); }
+    .rivi.leveä { grid-template-columns: 1fr; }
+    .arvo {
+      font-variant-numeric: tabular-nums;
+      color: var(--p-teksti);
+      min-width: 48px;
+      text-align: right;
+    }
+    .sade { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
+    input[type="color"] {
+      width: 40px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid var(--p-reuna);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--p-korostus);
+      cursor: pointer;
+    }
+    select {
+      width: 100%;
+      padding: 5px 6px;
+      border: 1px solid var(--p-reuna);
+      border-radius: 7px;
+      background: #26262b;
+      color: var(--p-teksti);
+      font: inherit;
+    }
+    #palauta {
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px;
+      border: 1px solid var(--p-reuna);
+      border-radius: 10px;
+      background: #26262b;
+      color: var(--p-teksti);
+      font: inherit;
+      cursor: pointer;
+    }
+    #palauta:hover { background: #2f2f36; }
+    details {
+      margin-top: 10px;
+      border: 1px solid var(--p-reuna);
+      border-radius: 10px;
+      background: var(--p-rivi);
+    }
+    summary {
+      padding: 8px 10px;
+      cursor: pointer;
+      color: var(--p-himmea);
+      user-select: none;
+    }
+    #tila {
+      margin: 0;
+      padding: 0 10px 10px;
+      font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: var(--p-teksti);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    #kopioi {
+      margin: 0 10px 10px;
+      padding: 5px 8px;
+      border: 1px solid var(--p-reuna);
+      border-radius: 7px;
+      background: #26262b;
+      color: var(--p-teksti);
+      font: inherit;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>X – oma ulkoasu</h1>
+  <div id="asetukset"></div>
+  <button id="palauta" type="button">Palauta oletukset</button>
+  <details>
+    <summary>Tila (vianetsintään)</summary>
+    <pre id="tila">Avaa x.com-välilehti, niin mitat päivittyvät tähän.</pre>
+    <button id="kopioi" type="button">Kopioi leikepöydälle</button>
+  </details>
+  <script src="settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

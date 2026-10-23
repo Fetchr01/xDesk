@@ -1,0 +1,919 @@
+/* =========================================================
+   X – oma ulkoasu  (content.css)
+   Rauhallisempi x.com: macOS-tyylinen dock, ei reunaviivoja,
+   postaukset sävyerolla, selkeämmät luvut.
+
+   Säädettävät arvot ovat :root-lohkossa oletusarvoinaan.
+   Popup kirjoittaa omat arvonsa suoraan <html>-elementin
+   tyyliin, jolloin ne voittavat nämä oletukset.
+   ========================================================= */
+
+:root {
+  --accent: #7c9cff;        /* Korostusväri */
+  --bg: #0f0f11;            /* Sivun tausta */
+  --card: #1a1a1d;          /* Postauksen tausta */
+  --quote: #252529;         /* Lainatun postauksen tausta */
+  --viiva: #2e2e36;         /* Erotinviiva (tiivis tila) */
+  --korttiYla: 8px;         /* Lisätila postauksen yläpuolelle (tiivis tila) */
+  --kenttaVali: 10px;       /* Postauskentän ja pinon väli (tiivis tila) */
+  --viivaPaksuus: 1px;      /* Erotinviivan paksuus */
+  --viivaPala: 34px;        /* Viivan palan pituus */
+  --viivaRako: 0px;         /* Palojen väli; 0 = yhtenäinen viiva */
+  /* Sama kuin X:n oma postausten enimmäisleveys. Jos sarake on tätä
+     leveämpi, kortit jäävät siihen vasemmalle tasatuiksi, mutta
+     otsikko ja tabit keskittyvät sarakkeeseen – jolloin mikään ei ole
+     linjassa keskenään. */
+  --colWidth: 600px;        /* Aikajanan leveys */
+  --radius: 18px;           /* Kulmien pyöristys */
+  --gap: 8px;               /* Väli postausten välissä */
+  --dockIcon: 28px;         /* Dockin ikonien koko */
+  --actionIcon: 22px;       /* Tykkäys- yms. ikonien koko */
+  --countWeight: 600;       /* Lukujen paksuus */
+  --countSize: 13px;        /* Lukujen koko */
+  --actionSpace: 14px;      /* Toimintopalkin väljyys ylä- ja alapuolella */
+  --kalat: 4;               /* Kanji-kalojen määrä taustalla */
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* =========================================================
+   0. Fontti koko sivulle
+   ========================================================= */
+body, body *:not(svg):not(path) {
+  font-family: var(--font) !important;
+}
+
+/* =========================================================
+   1. Taustat: tumma pohja, postaukset sävyerolla
+   ========================================================= */
+/* Vain html kantaa taustavärin. Body ja sisemmät kääreet jätetään
+   läpinäkyviksi, jotta kanji-kerros (z-index: -1) näkyy niiden takaa
+   – negatiivinen z-index piirtyy juuren taustan päälle mutta muun
+   sisällön alle. Sarake pysyy läpinäkymättömänä, joten kalat uivat
+   aikajanan takana eivätkä tekstin päällä. */
+html {
+  background-color: var(--bg) !important;
+}
+body, #react-root, #react-root > div, main[role="main"] {
+  background-color: transparent !important;
+}
+[data-testid="primaryColumn"] {
+  background-color: var(--bg) !important;
+}
+
+/* Kaikki reunaviivat pois aikajanalta ja postauksista */
+[data-testid="primaryColumn"],
+[data-testid="primaryColumn"] * {
+  border-color: transparent !important;
+}
+[data-testid="primaryColumn"] {
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* X sisentää aikajanan solut sarakkeen reunoista, jolloin postauskortit
+   jäivät kapeammiksi kuin postauskenttä. Nollataan sisennys solusta ja
+   sen kääreistä, niin kaikki on saman levyistä. Postauksen oma sisäinen
+   väljyys tulee article-elementin omasta paddingista eikä katoa. */
+[data-testid="cellInnerDiv"]:has(article[data-testid="tweet"]),
+[data-testid="cellInnerDiv"]:has(article[data-testid="tweet"]) > div,
+[data-testid="primaryColumn"] *:has([data-testid="cellInnerDiv"] article[data-testid="tweet"]) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+/* Sama kaikille article-elementin kääreille solun sisällä, olivat ne
+   kuinka syvällä tahansa – ja leveys täyteen siltä varalta että kyse
+   onkin leveysrajasta tai flex-asettelusta eikä paddingista. */
+[data-testid="cellInnerDiv"] *:has(article[data-testid="tweet"]) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  box-sizing: border-box !important;
+}
+/* Kortti itse vain täyteen leveyteen: sen oma padding on kortin
+   sisäreunus, eikä sitä saa nollata. */
+[data-testid="cellInnerDiv"] article[data-testid="tweet"] {
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}
+
+/* Postaukset kortteina – erottelu pelkällä sävyllä.
+   Ei hover-korostusta: kortti pysyy samana kun hiiri käy päällä. */
+[data-testid="cellInnerDiv"] article[data-testid="tweet"] {
+  background-color: var(--card) !important;
+  border-radius: var(--radius) !important;
+  margin: calc(var(--gap) / 2) 0 !important;
+}
+
+/* Tiivis tila: kun --gap on 0, content.js merkitsee html-elementin
+   data-tiivis-attribuutilla ja postaukset muodostavat yhtenäisen
+   pinon.
+
+   Tausta siirretään tässä tilassa article-elementiltä solulle ja
+   article tehdään läpinäkyväksi. Syy: solun ja sen kääreiden
+   pystypadding jää muuten kortin ulkopuolelle ja sivun tumma tausta
+   näkyy liitoskohdassa raitana. Kun solu itse on kortin värinen,
+   väliin ei jää mitään – ja pyöristys osuu oikein ilman
+   overflow-temppuja, koska päällä ei ole omaa taustaansa maalaavaa
+   elementtiä.
+
+   Viiva ei ole border vaan taustakuva: border-style: dashed ei anna
+   säätää palan pituutta, repeating-linear-gradient antaa. Pala ja
+   rako tulevat muuttujista --viivaPala ja --viivaRako.
+
+   Viiva annetaan jokaiselle solulle ja poistetaan ensimmäiseltä;
+   naapurivalitsin (+) ei kelpaa, koska solujen välissä voi olla
+   muitakin sisaruksia kuin postauksia. */
+/* Solujen emoelementti samaan väriin. Soluväleihin jää X:n omasta
+   rakenteesta parin pikselin sauma, jota ei saa kiinni solun
+   paddingeista – aiemmin sen peitti 2px paksu viiva, ohuempi ei
+   peitä. Kun lista itse on kortin värinen, sauma ei erotu. Sama
+   pyöristys kuin ensimmäisellä ja viimeisellä solulla, jotta
+   emoelementin omat kulmat eivät kurkista niiden alta. */
+html[data-tiivis] [data-testid="primaryColumn"]
+  div:has(> [data-testid="cellInnerDiv"] article[data-testid="tweet"]) {
+  background-color: var(--card) !important;
+  border-radius: var(--radius) !important;
+  /* Leikkaus tehdään täällä, ei soluissa: ensimmäinen solu ei ole
+     emoelementtinsä :first-child – X:n listassa on sen edellä muutakin –
+     joten solukohtainen pyöristys ei osu, ja solun neliökulmainen
+     tausta peittäisi emoelementin pyöristyksen. Leikattuna pinon
+     ylä- ja alapää saavat kulmansa riippumatta siitä mikä solu
+     sattuu olemaan ensimmäinen tai viimeinen. */
+  overflow: hidden !important;
+}
+
+html[data-tiivis] [data-testid="cellInnerDiv"]:has(article[data-testid="tweet"]) {
+  /* Lisätila annetaan solulle, ei articlelle: solu on kortin värinen,
+     joten padding näkyy kortin omana ilmana, eikä X:n sisäisiin
+     mittoihin tarvitse koskea. Viiva piirtyy taustakuvana solun
+     ylälaitaan, joten padding ei siirrä sitä. */
+  padding-top: var(--korttiYla) !important;
+  background-color: var(--card) !important;
+  border-top: none !important;
+  border-radius: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* Erotinviiva vain solulle jota edeltää toinen postaussolu, eli ei
+   pinon ensimmäiselle. Yleinen sisarusvalitsin ~ kelpaa tähän, koska
+   se ei välitä siitä mitä muuta X on solujen väliin laittanut;
+   :first-child ei osunut, sillä listassa on muutakin ennen
+   ensimmäistä solua. */
+html[data-tiivis] [data-testid="cellInnerDiv"]:has(article[data-testid="tweet"])
+  ~ [data-testid="cellInnerDiv"]:has(article[data-testid="tweet"]) {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--viiva) 0 var(--viivaPala),
+    transparent var(--viivaPala) calc(var(--viivaPala) + var(--viivaRako))
+  ) !important;
+  background-size: 100% var(--viivaPaksuus) !important;
+  background-repeat: no-repeat !important;
+  background-position: 0 0 !important;
+}
+html[data-tiivis] [data-testid="cellInnerDiv"]:has(article[data-testid="tweet"]) > div,
+html[data-tiivis] [data-testid="cellInnerDiv"] *:has(> article[data-testid="tweet"]) {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  background-color: transparent !important;
+}
+html[data-tiivis] [data-testid="cellInnerDiv"] article[data-testid="tweet"] {
+  background-color: transparent !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+/* Postauskenttä pysyy omana korttinaan myös tiiviissä tilassa: se on
+   syötettä, ei sisältöä, eikä saa näyttää feedin ensimmäiseltä
+   postaukselta. Pyöristys sillä on jo, mutta väli tulisi --gapista,
+   joka on tässä tilassa 0 – siksi oma muuttuja. */
+html[data-tiivis] [data-testid="primaryColumn"] > div > div:has([data-testid="tweetTextarea_0"]) {
+  margin-bottom: var(--kenttaVali) !important;
+}
+
+/* Lainattu postaus: vielä hieman vaaleampi sävy reunan sijaan */
+article[data-testid="tweet"] div[role="link"]:has([data-testid="User-Name"]) {
+  background-color: var(--quote) !important;
+  border-radius: calc(var(--radius) - 4px) !important;
+}
+
+/* Kuvat ja videot pyöreämmiksi. Säde on tarkoituksella pienempi kuin
+   kortin: sisemmän kaaren pitää olla ulompi miinus niiden väli, muuten
+   kulmat eivät ole samankeskisiä. Kuvan kulmassa on myös sisältöä,
+   kortin kulmassa ei – siksi kuvia ei pyöristetä enempää kuin korttia. */
+article[data-testid="tweet"] [data-testid="tweetPhoto"],
+article[data-testid="tweet"] [data-testid="videoPlayer"],
+article[data-testid="tweet"] [data-testid="card.wrapper"] {
+  border-radius: calc(var(--radius) - 6px) !important;
+  overflow: hidden !important;
+}
+
+/* Tekstille vähän enemmän ilmaa */
+[data-testid="tweetText"] {
+  line-height: 1.5 !important;
+  font-size: 15.5px !important;
+}
+[data-testid="User-Name"] a span {
+  font-weight: 650;
+}
+
+/* X asettaa sinisen osin suoraan style-attribuuttiin, jolloin
+   luokkiin perustuva korvaus ei tavoita sitä. Nämä kaksi valitsinta
+   osuvat vain siihen: ensimmäinen kun color on attribuutin alussa,
+   toinen kun se on toisen ominaisuuden jäljessä. Pelkkä
+   [style*="color: ..."] ei kelpaisi, koska se osuisi myös
+   background-coloriin – sen loppuosa on sama merkkijono. */
+[style^="color: rgb(29, 155, 240)"],
+[style*="; color: rgb(29, 155, 240)"] {
+  color: var(--accent) !important;
+}
+[style*="background-color: rgb(29, 155, 240)"] {
+  background-color: var(--accent) !important;
+}
+
+/* Vahvistusmerkki pysyy X:n omana sinisenä. content.js vaihtaa X:n
+   sinisen korostusväriin luokkatasolla (.r-xxx), ja sama luokka on
+   myös merkissä – tämä sääntö voittaa sen, koska attribuuttivalitsin
+   yhdessä elementtinimen kanssa on tarkempi kuin pelkkä luokka. */
+svg[data-testid="icon-verified"] {
+  color: rgb(29, 155, 240) !important;
+}
+
+/* Korostusväri: postausten linkit ja dockin aktiivinen kohta */
+[data-testid="tweetText"] a {
+  color: var(--accent) !important;
+}
+
+/* Aikajanan väliotsakkeet, esim. "Show 70 posts": korostusväri ja
+   ei hover-kirkastusta. Tunnistetaan soluista joissa ei ole postausta. */
+html[data-sivu="home"] [data-testid="cellInnerDiv"]:not(:has(article)) span,
+html[data-sivu="home"] [data-testid="cellInnerDiv"]:not(:has(article)) [role="button"] {
+  color: var(--accent) !important;
+}
+html[data-sivu="home"] [data-testid="cellInnerDiv"]:not(:has(article)):hover,
+html[data-sivu="home"] [data-testid="cellInnerDiv"]:not(:has(article)) *:hover {
+  background-color: transparent !important;
+}
+header[role="banner"] nav a[aria-current="page"] svg {
+  color: var(--accent) !important;
+  fill: var(--accent) !important;
+}
+
+/* =========================================================
+   2. Yläosa: For you / Following, postaus- ja vastauskenttä
+   ========================================================= */
+
+/* Sarakkeen yläpalkit (esim. postauksen "← Post") sivun taustavärille,
+   ei X:n mustaksi. Musta on otsikkopalkissa sisemmässä divissä, joten
+   väri annetaan kaikille otsikon kääreille – alla olevat tarkemmat
+   säännöt (kortit, kenttä, tabipalkki) voittavat tämän specificityllä. */
+[data-testid="primaryColumn"] div:has(h1),
+[data-testid="primaryColumn"] div:has(h2) {
+  background-color: var(--bg) !important;
+}
+[data-testid="primaryColumn"] div:has(h1),
+[data-testid="primaryColumn"] div:has(h2) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Tabipalkki: pelkkää tekstiä, ei korttia – ja jää sivun ylälaitaan
+   eli vierii pois näkyvistä skrollatessa (ei sticky). */
+[data-testid="primaryColumn"] > div > div:has([role="tablist"]),
+[data-testid="primaryColumn"] > div > div:has([role="tablist"]) > div {
+  position: static !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 0 !important;
+}
+/* Hieman irti yläreunasta */
+[data-testid="primaryColumn"] > div > div:has([role="tablist"]) {
+  padding-top: 14px !important;
+  margin-bottom: calc(var(--gap) / 2) !important;
+}
+[role="tablist"],
+[role="tablist"] [role="tab"] {
+  background-color: transparent !important;
+}
+/* Tabit lähekkäin keskelle sen sijaan että venyvät koko leveydelle.
+   X kääräisee jokaisen tabin omaan venyvään diviin, joten flex-arvot
+   on annettava tablistin suorille lapsille eikä tabille itselleen.
+
+   Koskee etusivua ja ilmoituksia. Muut home-rajatut säännöt eivät
+   seuraa mukana: ne käsittelevät aikajanan omia erikoissoluja. */
+html:is([data-sivu="home"], [data-sivu="ilmoitukset"]) [role="tablist"] {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 10px !important;
+}
+html:is([data-sivu="home"], [data-sivu="ilmoitukset"]) [role="tablist"] > * {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+}
+html:is([data-sivu="home"], [data-sivu="ilmoitukset"]) [role="tablist"] [role="tab"] {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+/* Valitun tabin alla lyhyt paksu palkki korostusvärillä.
+   Alleviivaus on X:n DOM:issa tyhjä div tabin sisällä. */
+[role="tab"][aria-selected="true"] div:empty {
+  background-color: var(--accent) !important;
+  height: 4px !important;
+  border-radius: 999px !important;
+}
+
+/* Postauskenttä (etusivu) */
+[data-testid="primaryColumn"] > div > div:has([data-testid="tweetTextarea_0"]) {
+  background-color: var(--card) !important;
+  border-radius: var(--radius) !important;
+  /* --cardWidth ja --cardLeft tulevat content.js:n mittauksesta, jotta
+     kenttä on tasan saman levyinen ja samassa linjassa korttien kanssa. */
+  width: var(--cardWidth, auto) !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  margin: calc(var(--gap) / 2) auto calc(var(--gap) / 2) var(--cardLeft, 0px) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+/* Vastauskenttä (postauksen sivu). Ei omaa marginaalia eikä paddingia:
+   aikajana on virtualisoitu ja solu saa X:ltä mitatun korkeuden, joten
+   kasvatus työntäisi kentän seuraavien postausten päälle. */
+[data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]) {
+  background-color: var(--card) !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden !important;
+}
+/* X:n omat mustat taustat kentän sisältä pois (napit ovat <button>, eivät <div>) */
+[data-testid="primaryColumn"] > div > div:has([data-testid="tweetTextarea_0"]) div,
+[data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]) div {
+  background-color: transparent !important;
+}
+/* Erotinviivat pois: X piirtää ne tyhjinä, taustavärillisinä diveinä.
+   Tabin alleviivaus on tarkempi sääntö yllä, joten se säilyy. */
+[data-testid="primaryColumn"] div:empty {
+  background-color: transparent !important;
+}
+[data-testid="primaryColumn"] > div > div:has([data-testid="tweetTextarea_0"]) + div {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+/* Hakukenttä (Explore ja haku): ei X:n mustaa, vaan kortin sävy ja
+   squircle. Kenttä itse ja sen sisäkääreet läpinäkyviksi, jotta
+   kehyksen väri tulee lomakkeelta. */
+form[role="search"] {
+  background-color: var(--card) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+form[role="search"] div,
+form[role="search"] input {
+  background-color: transparent !important;
+}
+
+/* Post / Reply -nappi: squircle + korostusväri */
+[data-testid="tweetButtonInline"],
+[data-testid="tweetButton"] {
+  border-radius: 14px !important;
+}
+[data-testid="tweetButtonInline"]:not([aria-disabled="true"]),
+[data-testid="tweetButton"]:not([aria-disabled="true"]) {
+  background-color: var(--accent) !important;
+}
+
+/* =========================================================
+   3. Toimintopalkki: isommat ikonit, paksummat luvut
+   ========================================================= */
+article[data-testid="tweet"] [role="group"] svg {
+  width: var(--actionIcon) !important;
+  height: var(--actionIcon) !important;
+}
+article[data-testid="tweet"] [role="group"] span {
+  font-size: var(--countSize) !important;
+  font-weight: var(--countWeight) !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: rgba(231, 233, 234, 0.72) !important;
+}
+/* Ilmaa palkin ylä- ja alapuolelle, jotta kortti hengittää.
+   Padding eikä margin: pystymarginaalit sulautuvat naapurin
+   marginaaliin, jolloin yläpuolelle ei tullut mitään lisää. */
+article[data-testid="tweet"] [role="group"] {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: var(--actionSpace) !important;
+  padding-bottom: var(--actionSpace) !important;
+}
+
+/* =========================================================
+   4. Sivupalkki pois, aikajana keskelle ruutua
+   ========================================================= */
+[data-testid="sidebarColumn"],
+[data-testid="DMDrawer"],
+[data-testid="GrokDrawer"] {
+  display: none !important;
+}
+/* Aikajanan ja sivupalkin kääreet koko leveyteen ja keskitys.
+   :not() jättää itse aikajanasarakkeen rauhaan. */
+main[role="main"] > div,
+main[role="main"] > div > div:not([data-testid]) {
+  width: 100% !important;
+  max-width: none !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+}
+[data-testid="primaryColumn"] {
+  width: var(--colWidth) !important;
+  max-width: var(--colWidth) !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-bottom: 120px !important; /* tilaa dockille */
+}
+[data-testid="cellInnerDiv"]:has(aside[aria-label="Who to follow"]),
+[data-testid="cellInnerDiv"]:has(aside[aria-label="Keitä seurata"]),
+[data-testid="cellInnerDiv"]:has([aria-label*="Live on X"]) {
+  display: none !important;
+}
+
+/* =========================================================
+   5. Vasen valikko -> macOS-tyylinen dock alareunaan
+
+   Headeria ei yritetä litistää: se kutistetaan nollan kokoiseksi ja
+   piilotetaan kokonaan (visibility), ja pelkkä nav nostetaan takaisin
+   näkyviin omana fixed-elementtinään. Näin X:n kääreiden rakenne,
+   leveydet tai määrä eivät vaikuta dockiin mitenkään.
+   ========================================================= */
+header[role="banner"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: visible !important;
+  transform: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: 1000 !important;
+}
+
+/* Itse dock: lasimainen, pyöristetty, aina ruudun alareunan keskellä */
+header[role="banner"] nav {
+  visibility: visible !important;
+  pointer-events: auto !important;
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 18px !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  width: max-content !important;       /* pilleri aina sisällön levyinen */
+  min-width: 0 !important;
+  max-width: calc(100vw - 32px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  gap: 4px;
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  border-radius: 24px !important;
+  overflow: visible !important;
+  background: rgba(38, 38, 42, 0.55) !important;
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.12);
+  transition: transform 0.35s cubic-bezier(.2,.8,.2,1), opacity 0.25s ease !important;
+}
+/* Piilotus alas skrollatessa (tila tulee content.js:ltä) */
+html[data-dock="hidden"] header[role="banner"] nav {
+  transform: translate(-50%, 150%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Navin sisäiset kääreet pois, jotta kuvakkeista tulee suoria flex-lapsia */
+header[role="banner"] nav > div {
+  display: contents !important;
+}
+
+/* Yksi dock-kuvake. Myös <button> (esim. "..."-valikko), muuten se pitää
+   X:n sivupalkkileveyden ja venyttää dockin rikki. */
+header[role="banner"] nav a,
+header[role="banner"] nav button {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 10px !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  transform-origin: bottom center;
+  transition: transform 0.18s cubic-bezier(.3, .7, .4, 1.4);
+  will-change: transform;
+}
+header[role="banner"] nav a > div,
+header[role="banner"] nav button > div {
+  width: auto !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  transform-origin: bottom center;
+  transition: transform 0.18s cubic-bezier(.3, .7, .4, 1.4);
+}
+
+/* Tekstit pois, vain ikonit – mutta ikonin kääre pidetään näkyvissä */
+header[role="banner"] nav div[dir] {
+  display: none !important;
+}
+header[role="banner"] nav div[dir]:has(svg) {
+  display: flex !important;
+}
+
+/* Ikonit isommiksi */
+header[role="banner"] nav svg {
+  display: block !important;
+  width: var(--dockIcon) !important;
+  height: var(--dockIcon) !important;
+}
+
+/* macOS-henkinen suurennus, jaettuna kahteen tasoon.
+
+   Skaalaus on linkissä, jotta kaikki sen sisällä – myös lukemattomien
+   merkkipallura, joka on asemoitu linkkiin nähden – liikkuu jäykästi
+   mukana. Alareunaan ankkuroitu pelkkä skaalaus vain kasvattaa
+   osumapintaa, joten hiiri ei voi pudota elementin ulkopuolelle.
+
+   Nosto on erikseen sisemmässä kääreessä: jos translateY olisi
+   linkissä, sen alareuna nousisi kursorin yli ja kuvakkeet
+   värähtelisivät vuorotellen – tämä oli aiempi vika. */
+header[role="banner"] nav a:hover,
+header[role="banner"] nav button:hover {
+  transform: scale(1.3);
+}
+header[role="banner"] nav a:hover > div,
+header[role="banner"] nav button:hover > div {
+  transform: translateY(-4px);
+}
+header[role="banner"] nav a:hover + a,
+header[role="banner"] nav a:has(+ a:hover),
+header[role="banner"] nav a:hover + button,
+header[role="banner"] nav button:hover + a {
+  transform: scale(1.12);
+}
+header[role="banner"] nav a:hover + a > div,
+header[role="banner"] nav a:has(+ a:hover) > div,
+header[role="banner"] nav a:hover + button > div,
+header[role="banner"] nav button:hover + a > div {
+  transform: translateY(-1px);
+}
+
+/* Nimi-kuplaa ei piirretä itse: X näyttää dockin kuvakkeille oman
+   tooltipin, ja oma ::after-kupla näkyi sen päällä kaksoistekstinä. */
+
+/* Turhat valikkokohteet pois */
+header[role="banner"] nav a[href*="/i/grok"],
+header[role="banner"] nav a[href*="/i/premium"],
+header[role="banner"] nav a[href*="/i/verified"],
+header[role="banner"] nav a[href*="/jobs"],
+header[role="banner"] nav a[href*="/communities"],
+header[role="banner"] nav a[href*="/i/verified-orgs"] {
+  display: none !important;
+}
+
+/* =========================================================
+   6. Modaalit, joissa on kytkimiä (esim. Snooze Topics)
+
+   Rajaus :has([role="switch"]) / checkbox pitää säännön poissa
+   kuvankatselusta ja postausikkunasta, jotka ovat myös dialogeja.
+   ========================================================= */
+/* Laatikko: squircle, kortin sävy, kapeampi (oli 600 px). Keskitys
+   tulee X:n omasta margin: auto -luokasta, joten sitä ei kosketa. */
+[data-testid="sheetDialog"] {
+  max-width: 440px !important;
+  border-radius: 24px !important;
+  background-color: var(--card) !important;
+}
+/* Sisältölohko väljemmäksi (X:n oma on 20 px) */
+[data-testid="sheetDialog"] > div {
+  padding: 26px !important;
+}
+/* Rivit: hieman ilmaa väliin, kytkin ei veny reunaan */
+[data-testid="sheetDialog"] div:has(> div > input[role="switch"]) {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+[data-testid="sheetDialog"] input[role="switch"] {
+  margin-right: 0 !important;
+}
+/* Muut modaalit (esim. Explore settings). X maalaa mustat pinnat
+   omalla r-kemksi-luokallaan (background-color: rgba(0,0,0,1)) ja
+   renderöi modaalit #layers-säiliöön. Vaihdetaan kortin sävyyn.
+   Huom: luokkanimi on X:n generoima – jos se joskus muuttuu, tämä
+   sääntö lakkaa vaikuttamasta, mutta mikään ei hajoa. */
+#layers .r-kemksi {
+  background-color: var(--card) !important;
+}
+#layers [aria-modal="true"] .r-kemksi {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+}
+
+/* Alanappi (Reset): squircle ilman reunaviivaa, täytetty sen sijaan.
+   Reunaväri tulee X:ltä inline-tyylinä, jonka !important voittaa.
+   Sulkunappi pysyy pyöreänä, koska se on sheetDialogin suora lapsi. */
+[data-testid="sheetDialog"] > div > button {
+  border: none !important;
+  border-radius: 14px !important;
+  background-color: var(--quote) !important;
+}
+[data-testid="sheetDialog"] > div > button:hover {
+  background-color: color-mix(in srgb, var(--quote) 85%, #ffffff) !important;
+}
+
+/* Ilmoituskupla, esim. "Added to your Bookmarks". X renderöi sen
+   #layers-säiliöön sinisenä pillerinä valkoisella tekstillä. Tehdään
+   siitä dockin kanssa samannäköinen lasipilleri ja nostetaan dockin
+   yläpuolelle, muuten se ilmestyy kuvakkeiden alle. */
+#layers [data-testid="toast"] {
+  margin-bottom: 86px !important;
+  padding: 12px 20px !important;
+  min-height: 0 !important;
+  border: none !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  background: rgba(38, 38, 42, 0.72) !important;
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.12) !important;
+}
+/* X:n oma sininen pinta kuplan sisältä pois */
+#layers [data-testid="toast"] > div,
+#layers [data-testid="toast"] > div > div {
+  background-color: transparent !important;
+}
+/* Teksti ja "View"-linkki korostusvärillä */
+#layers [data-testid="toast"] span,
+#layers [data-testid="toast"] div[dir],
+#layers [data-testid="toast"] a[role="link"] {
+  color: var(--accent) !important;
+}
+#layers [data-testid="toast"] a[role="link"] {
+  font-weight: 700 !important;
+  text-decoration: none !important;
+}
+
+/* =========================================================
+   7. Chat-pallo: sivun maskotti ja oikotie chattiin
+
+   Elementin luo content.js. Sijainti (right) ja ahtaustila
+   tulevat sieltä, muu ulkoasu on täällä.
+   ========================================================= */
+#oma-chat-pallo {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 1001;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: grab;
+  /* Tasainen hiilenharmaa, ei liukuvärejä eikä varjoa: syvyys tulee
+     silmien liikkeestä, ei pinnan maalaamisesta. */
+  background: #26262b;
+  box-shadow: none;
+  /* Perspektiivi kasvotasolle. Mitä pienempi arvo, sitä voimakkaampi
+     lyhentymä; 110px vastaa suunnilleen 56px pallon syvyyttä. */
+  perspective: 110px;
+  overflow: hidden;
+  animation: oma-kellu 4.5s ease-in-out infinite;
+  transition:
+    transform 0.2s cubic-bezier(.3, .7, .4, 1.4),
+    opacity 0.2s ease,
+    left 0.45s cubic-bezier(.2, .8, .2, 1),
+    top 0.45s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes oma-kellu {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -4px; }
+}
+#oma-chat-pallo:hover {
+  transform: scale(1.08);
+}
+#oma-chat-pallo:active {
+  transform: scale(0.94);
+}
+/* Raahatessa: ei liukua eikä kelluntaa, jotta pallo seuraa kursoria
+   tarkalleen eikä animaatio taistele vastaan. */
+#oma-chat-pallo[data-raahaus="kylla"] {
+  cursor: grabbing;
+  transition: none;
+  animation: none;
+  transform: scale(1.06);
+}
+/* Ahtaalla pallo on sarakkeen päällä, joten se väistyy katseelta
+   kunnes hiiri käy sen päällä. */
+#oma-chat-pallo[data-ahdas="kylla"] {
+  opacity: 0.5;
+}
+#oma-chat-pallo[data-ahdas="kylla"]:hover {
+  opacity: 1;
+}
+
+/* Kasvot omalla tasollaan. Taso kääntyy kursorin suuntaan, pallo ei:
+   ympyrän ääriviiva pysyy ympyränä, mutta silmät ovat translateZ:n
+   verran pinnan korkeudella, joten perspektiivi tuottaa parallaksin
+   ja lyhentymän itsestään – lähempi silmä liikkuu enemmän ja kauempi
+   kapenee. Tästä syntyy vaikutelma että pää kääntyy.
+
+   Suunta tulee muuttujista --kx/--ky (content.js), jotka ovat
+   yksiköttömiä arvoja väliltä -1…1. */
+#oma-chat-pallo .oma-kasvot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  transform:
+    rotateY(calc(var(--kx, 0) * 28deg))
+    rotateX(calc(var(--ky, 0) * -22deg));
+  transition: transform 0.22s cubic-bezier(.2, .8, .2, 1);
+}
+
+/* Silmät: mustat viivat pyöristetyin päin, ei mustuaisia.
+   Hiilenharmaa pohja ja lähes musta silmä antavat juuri sen verran
+   kontrastia että ilme erottuu, mutta pallo ei huuda. */
+#oma-chat-pallo .oma-silma {
+  display: block;
+  width: 6px;
+  height: 15px;
+  border-radius: 3px;
+  background: #0b0b0e;
+  transform-origin: center;
+  /* Pinnan korkeus. Noin neljännes pallon halkaisijasta: tarpeeksi
+     parallaksia, muttei niin paljon että silmät irtoaisivat pinnasta. */
+  transform: translateZ(14px);
+}
+#oma-chat-pallo[data-rapsy="kylla"] .oma-silma {
+  transform: translateZ(14px) scaleY(0.12);
+}
+
+/* Jos käyttäjä on pyytänyt vähemmän liikettä, kellunta pois */
+@media (prefers-reduced-motion: reduce) {
+  #oma-chat-pallo {
+    animation: none;
+  }
+  #oma-chat-pallo .oma-kasvot {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Varmistus: kutistettuna kääre on 400x55 ja koko tulee
+   inline-tyylistä. Piilotetaan se myös CSS:llä siltä varalta, että
+   content.js:n tilanluku ei jostain syystä osu. Auki oleva paneeli
+   on 400x530, joten tämä ei koske sitä. */
+[data-testid="chat-drawer-root"][style*="height: 55px"] {
+  visibility: hidden !important;
+}
+
+/* =========================================================
+   8. Chat-paneeli (xchat-embed)
+
+   Paneeli elää shadow DOM:issa (isäntä [data-testid="xchatEmbedDrawer"]),
+   eikä sivun CSS läpäise shadow-rajaa. Sen tyylit ovat siksi
+   content.js:ssä, joka injektoi ne shadow-juureen. CSS-muuttujat
+   (--card, --bg, --accent) periytyvät sinne <html>-elementiltä.
+   ========================================================= */
+
+/* =========================================================
+   9. Kanji-kalat taustalla
+
+   Sisällön takana uivat hahmot, koottu kala-aiheisista kanjeista.
+   Elementit luo content.js; määrä tulee --kalat-muuttujasta, jota
+   säädetään popupista (0 = pois).
+   ========================================================= */
+#oma-kanjit {
+  --kalat-maara: var(--kalat);   /* säädin luetaan täältä content.js:ssä */
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Oma fontti: osion 0 sääntö pakottaa --font kaikkeen, ja ruudukko
+   hajoaisi suhteellisella fontilla. Id-valitsin voittaa sen. */
+#oma-kanjit,
+#oma-kanjit * {
+  font-family: "Noto Sans Mono CJK JP", "Noto Sans CJK JP", "Noto Sans JP",
+               "Source Han Sans", "MS Gothic", monospace !important;
+  letter-spacing: 0 !important;
+}
+
+#oma-kanjit .oma-kala-vartalo > span {
+  display: block;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  text-align: center;
+}
+
+#oma-kanjit .oma-kala {
+  position: absolute;
+  left: 0;
+  white-space: pre;
+  line-height: 1.05;
+  color: var(--accent);
+  opacity: 0.13;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Vaakasuunta ulommassa, aaltoilu sisemmässä: eri ominaisuudet
+   (transform ja translate), joten ne eivät kumoa toisiaan. */
+#oma-kanjit .oma-kala-vartalo {
+  display: grid;                 /* solut 1em x 1em: muoto ei riipu fontista */
+  grid-auto-rows: 1em;
+  margin: 0;
+  font: inherit;
+  animation-name: oma-aalto;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes oma-ui-oikealle {
+  from { transform: translateX(-20vw); }
+  to   { transform: translateX(110vw); }
+}
+@keyframes oma-ui-vasemmalle {
+  from { transform: translateX(110vw); }
+  to   { transform: translateX(-20vw); }
+}
+@keyframes oma-aalto {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #oma-kanjit { display: none; }
+}
+
+/* =========================================================
+   10. Valinnainen: luvut kokonaan pois
+   Poista kommenttimerkit, jos haluat piilottaa tykkäys- yms. määrät.
+   ========================================================= */
+/*
+[data-testid="reply"] span, [data-testid="retweet"] span,
+[data-testid="like"] span, [data-testid="unlike"] span,
+a[href$="/analytics"] span { visibility: hidden !important; }
+*/

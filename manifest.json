@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "X – oma ulkoasu",
+  "version": "0.37.3",
+  "description": "Rauhallisempi x.com: macOS-tyylinen dock, ei reunaviivoja, postaukset sävyerolla, selkeämmät luvut.",
+  "permissions": [
+    "storage"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "js": [
+        "settings.js",
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "X – oma ulkoasu",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
