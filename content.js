@@ -1013,18 +1013,288 @@
     return [kasinVedetty(ylaveto, h), kasinVedetty(alaveto, h), kasinVedetty(kaari, h * 0.6)];
   }
 
-  /* alus ja spacexMerkki ovat toistaiseksi pois kierrosta: funktiot
-     jäävät paikalleen, joten ne saa takaisin lisäämällä nimen tähän
-     listaan. */
-  const MUODOT = [kierre, heinapallo, silmukka, renkaat, aalto, vyyhti,
-                  teslanMerkki, xMerkki];
+  function grokMerkki() {
+    const h = 0.5 + Math.random() * 0.35;
+
+    /* Grokin tunnus: rengas, jonka läpi viistää pitkä piikki. Ääriviiva
+       on poimittu xAI:n omasta logotiedostosta (ne kaksi polkua jotka
+       on merkitty id="mark"), joten renkaan katkot ja piikin kärjen
+       kapeneminen ovat oikeassa suhteessa. Kaksi vetoa: rengas päättyy
+       kumpaankin piikin reunaan, joten ne eivät ole yksi silmukka. */
+    const kehraaja = [
+      [39.3, 62.8], [44.5, 59.0], [49.7, 55.1], [54.9, 51.3], [60.1, 47.4], [65.3, 43.6],
+      [70.6, 39.7], [73.1, 39.2], [73.1, 39.2], [75.0, 40.8], [75.9, 43.1], [76.5, 45.5],
+      [76.8, 48.0], [77.0, 50.5], [76.9, 53.0], [76.6, 55.4], [76.0, 57.9], [75.2, 60.2],
+      [74.1, 62.5], [72.8, 64.8], [71.3, 66.9], [69.5, 68.9], [67.5, 70.6], [65.4, 72.2],
+      [63.3, 73.5], [61.0, 74.5], [58.7, 75.3], [56.3, 75.9], [53.8, 76.2], [51.4, 76.3],
+      [48.9, 76.2], [46.4, 75.8], [43.9, 75.2], [41.5, 74.4], [41.5, 74.4], [36.2, 76.8],
+      [30.9, 79.3], [30.9, 79.3], [34.7, 81.6], [38.7, 83.4], [42.7, 84.7], [46.8, 85.5],
+      [50.9, 85.8], [54.9, 85.7], [58.8, 85.0], [62.7, 84.0], [66.3, 82.5], [69.8, 80.6],
+      [73.1, 78.3], [76.2, 75.5], [78.3, 73.2], [80.2, 70.7], [81.9, 68.1], [83.2, 65.4],
+      [84.4, 62.7], [85.3, 59.9], [85.9, 57.0], [86.3, 54.1], [86.5, 51.2], [86.4, 48.3],
+      [86.1, 45.4], [85.5, 42.6], [84.7, 38.7], [84.3, 35.1], [84.2, 31.8], [84.4, 28.7],
+      [85.0, 25.8], [85.8, 23.1], [86.9, 20.4], [88.3, 17.7], [89.9, 15.0], [91.8, 12.1],
+      [94.0, 9.1], [96.3, 5.9], [96.3, 5.9], [92.2, 9.8], [88.1, 13.8], [84.1, 17.8],
+      [79.6, 22.3], [75.1, 26.8], [70.6, 31.3], [66.2, 35.8], [61.7, 40.3], [57.2, 44.8],
+      [52.7, 49.3], [48.3, 53.8], [43.8, 58.3], [39.3, 62.8], [39.3, 62.8]
+    ];
+    const kaari = [
+      [32.9, 68.4], [32.9, 68.4], [30.4, 65.7], [28.4, 62.8], [27.0, 59.7], [26.0, 56.5],
+      [25.5, 53.3], [25.4, 50.0], [25.7, 46.8], [26.5, 43.6], [27.6, 40.5], [29.1, 37.6],
+      [31.0, 34.9], [33.1, 32.4], [34.9, 30.8], [36.9, 29.3], [39.0, 28.1], [41.3, 27.0],
+      [43.6, 26.2], [46.1, 25.5], [48.5, 25.1], [51.1, 24.9], [53.6, 25.0], [56.2, 25.4],
+      [58.7, 26.0], [61.2, 26.9], [61.2, 26.9], [66.5, 24.4], [71.8, 22.0], [71.8, 22.0],
+      [69.7, 20.6], [67.3, 19.2], [64.6, 18.1], [61.4, 16.9], [58.1, 16.1], [54.8, 15.6],
+      [51.4, 15.4], [48.0, 15.6], [44.6, 16.1], [41.3, 16.9], [38.1, 18.0], [35.0, 19.5],
+      [32.0, 21.2], [29.1, 23.3], [26.4, 25.8], [24.1, 28.3], [22.1, 31.1], [20.3, 34.1],
+      [18.8, 37.2], [17.7, 40.4], [16.9, 43.7], [16.4, 47.1], [16.2, 50.5], [16.3, 53.9],
+      [16.8, 57.3], [17.6, 60.7], [18.8, 64.0], [19.5, 66.4], [19.9, 68.6], [19.6, 72.9],
+      [18.1, 76.8], [15.8, 80.5], [14.4, 82.3], [12.8, 84.1], [11.2, 85.8], [9.6, 87.6],
+      [7.8, 89.4], [6.1, 91.3], [4.5, 93.2], [3.0, 95.1], [3.0, 95.1], [8.0, 90.7],
+      [12.9, 86.2], [17.9, 81.8], [22.9, 77.3], [27.9, 72.9], [32.8, 68.4]
+    ];
+
+    return [kasinVedetty(kehraaja, h), kasinVedetty(kaari, h)];
+  }
+
+  function grokBot() {
+    const h = 0.5 + Math.random() * 0.35;
+
+    /* Grok Botin tunnus: pallo ja kaksi vinoa rakoa oikeassa
+       yläneljänneksessä. Mitat on mitattu xAI:n omasta kuvasta
+       pikseleittäin ja kirjattu säteen osuuksina, joten muoto pysyy
+       oikeana riippumatta tämän ruudun koosta. Raot ovat eri
+       paksuisia – alempi on selvästi tukevampi – eikä se ole virhe
+       mittauksessa vaan niin se on logossakin. */
+    const SADE = 44;
+    const RAOT = [
+      {alku: [-0.056, -0.569], loppu: [0.272, -0.107], leveys: 0.266},
+      {alku: [0.410, -0.787], loppu: [0.756, -0.338], leveys: 0.179}
+    ];
+
+    const kehä = [];
+    for (let a = 0; a <= Math.PI * 2 + 0.2; a += 0.13)
+      kehä.push(hajota(50 + Math.cos(a) * SADE, 50 + Math.sin(a) * SADE, 1.1));
+
+    /* Rako on suorakaide jonka päät ovat puoliympyröitä. Kaaret
+       näytteistetään ja suorat kyljet saavat välipisteitä, muuten
+       pehmennys pullistaisi ne – sama syy kuin monikulmio():ssa. */
+    const raot = RAOT.map(({alku, loppu, leveys}) => {
+      const ax = 50 + alku[0] * SADE, ay = 50 + alku[1] * SADE;
+      const bx = 50 + loppu[0] * SADE, by = 50 + loppu[1] * SADE;
+      const r = leveys * SADE / 2;
+      const suunta = Math.atan2(by - ay, bx - ax);
+      const kaari = (x, y, mista) => {
+        const ulos = [];
+        for (let t = 0; t <= Math.PI + 0.01; t += 0.26)
+          ulos.push([x + Math.cos(suunta + mista + t) * r, y + Math.sin(suunta + mista + t) * r]);
+        return ulos;
+      };
+      const kylki = (p, q) => {
+        const ulos = [];
+        for (let k = 1; k < 4; k++)
+          ulos.push([p[0] + (q[0] - p[0]) * k / 4, p[1] + (q[1] - p[1]) * k / 4]);
+        return ulos;
+      };
+      const paa = kaari(bx, by, -Math.PI / 2);          // kärki b:n ympäri
+      const tyvi = kaari(ax, ay, Math.PI / 2);          // kärki a:n ympäri
+      const muoto = [
+        ...paa, ...kylki(paa[paa.length - 1], tyvi[0]),
+        ...tyvi, ...kylki(tyvi[tyvi.length - 1], paa[0]), paa[0]
+      ];
+      return kasinVedetty(muoto, h * 0.6);
+    });
+
+    return [kasinVedetty(kehä, h), ...raot];
+  }
+
+  function optimus() {
+    const h = 0.55 + Math.random() * 0.4;      // sama robotti, eri käsiala
+
+    /* Optimus. Logoista poiketen tästä ei ole vektorilähdettä, joten
+       mittasuhteet on mitattu ruudukon avulla Wikimedia Commonsin
+       valokuvasta (Tesla showroom, 11/2025) ja muunnettu niin että
+       pään laki on 0 ja jalkapohjat 100. Hahmo on kapea: koko
+       kädenväli on vain noin 23 yksikköä sataa korkeusyksikköä kohti,
+       eli selvästi kapeampi kuin alus – siksi sille annetaan isompi
+       laatikko SUURENNOS-taulussa.
+
+       Osat ovat omia vetojaan: pää, visiiri, vartalo, kädet ja jalat.
+       Yhtenä ääriviivana pehmennys sulattaisi raajat vartaloon. */
+    const pää = [];
+    for (let a = 0; a <= Math.PI * 2 + 0.2; a += 0.3) {
+      /* Soikio, jonka laki on kapeampi kuin leuka: sellainen se on
+         kuvassa, eikä tasainen muna. */
+      const kapeus = 1 - 0.18 * Math.cos(a);
+      pää.push([50.3 + Math.sin(a) * 4.2 * kapeus, 6.9 - Math.cos(a) * 6.9]);
+    }
+    /* Visiiri on se yksi piirre josta hahmon tunnistaa Optimukseksi
+       eikä miksi tahansa ihmishahmoksi, joten se piirretään erikseen. */
+    const visiiri = monikulmio([[46.6, 7.1], [54.0, 7.1], [53.6, 10.4], [47.0, 10.4], [46.6, 7.1]], 3);
+
+    const vartalo = monikulmio([
+      [48.1, 13.8], [48.1, 16.4],                 // kaula
+      [43.5, 17.5], [43.4, 23.4], [44.1, 42.2],   // olka ja rintakehä
+      [46.0, 49.4], [45.5, 55.2], [47.9, 57.8],
+      [52.7, 57.8], [55.1, 55.2], [54.6, 49.4],
+      [56.5, 42.2], [57.2, 23.4], [57.1, 17.5],
+      [52.5, 16.4], [52.5, 13.8], [48.1, 13.8]
+    ], 3);
+
+    /* Kädet riippuvat sivuilla, kyynärpää noin 40 %:n korkeudella. */
+    const kasi = (puoli) => monikulmio([
+      [50 + puoli * 6.1, 20.1], [50 + puoli * 8.6, 21.5],
+      [50 + puoli * 8.9, 31.0], [50 + puoli * 8.2, 40.3],
+      [50 + puoli * 9.6, 52.0], [50 + puoli * 10.6, 62.1],
+      [50 + puoli * 8.4, 68.2], [50 + puoli * 6.2, 66.9],
+      [50 + puoli * 6.0, 52.0], [50 + puoli * 5.2, 40.3],
+      [50 + puoli * 5.4, 31.0], [50 + puoli * 6.1, 20.1]
+    ], 3);
+
+    const jalka = (puoli) => monikulmio([
+      [50 + puoli * 0.8, 56.6], [50 + puoli * 6.0, 57.4],
+      [50 + puoli * 6.3, 68.5], [50 + puoli * 5.6, 78.6],
+      [50 + puoli * 5.9, 89.5], [50 + puoli * 7.0, 97.3],
+      [50 + puoli * 1.0, 97.3], [50 + puoli * 1.6, 89.5],
+      [50 + puoli * 1.4, 78.6], [50 + puoli * 0.9, 68.5],
+      [50 + puoli * 0.8, 56.6]
+    ], 3);
+
+    return [
+      kasinVedetty(pää, h * 0.8),
+      kasinVedetty(visiiri, h * 0.5),
+      kasinVedetty(vartalo, h * 0.8),
+      kasinVedetty(kasi(-1), h * 0.7), kasinVedetty(kasi(1), h * 0.7),
+      kasinVedetty(jalka(-1), h * 0.7), kasinVedetty(jalka(1), h * 0.7)
+    ];
+  }
+
+  function dogeNaama() {
+    const h = 0.5 + Math.random() * 0.4;
+
+    /* Doge. Ääriviivat on poimittu Wikimedia Commonsin Doge.svg:stä,
+       jossa naama on jo valmiiksi pelkistetty muutamaksi muodoksi –
+       siksi tämä lukee taustalla toisin kuin valokuvasta johdettu
+       hahmo: siinä ei ole mitään mitä viiva ei kanna.
+
+       Kymmenen vetoa: päälaki ja kuono erikseen (väriraja kulkee
+       naaman poikki, ja se on osa ilmettä), korvat, silmät omine
+       pupilleineen, kuononpää ja suu. Tunnuksena jokainen veto saa
+       oman polkunsa, joten ne etenevät samaa tahtia. */
+    const paalaki = [
+      [94.2, 55.4], [94.2, 55.4], [87.4, 55.4], [80.6, 55.4], [73.8, 55.4], [67.0, 55.4],
+      [60.2, 55.4], [53.4, 55.4], [46.6, 55.4], [39.8, 55.4], [33.0, 55.4], [26.2, 55.4],
+      [19.4, 55.4], [12.6, 55.4], [5.8, 55.4], [5.8, 55.4], [6.1, 49.5], [7.1, 43.8],
+      [8.7, 38.4], [10.9, 33.4], [13.7, 28.8], [17.1, 24.6], [21.0, 20.9], [25.3, 17.7],
+      [30.2, 15.1], [35.5, 13.1], [41.3, 11.8], [47.5, 11.2], [51.2, 11.3], [54.9, 11.4],
+      [61.7, 12.5], [67.8, 14.3], [73.3, 16.8], [78.2, 20.0], [82.4, 23.8], [86.0, 28.2],
+      [89.0, 33.0], [91.3, 38.2], [92.9, 43.7], [93.9, 49.5], [94.2, 55.4], [94.2, 55.4]
+    ];
+    const kuono = [
+      [94.2, 55.4], [94.2, 55.4], [93.0, 52.8], [90.0, 51.0], [85.7, 50.0], [83.3, 49.7],
+      [80.8, 49.5], [78.2, 49.5], [75.7, 49.5], [73.3, 49.7], [71.0, 49.8], [68.6, 50.1],
+      [64.8, 50.9], [62.0, 51.9], [60.0, 52.9], [57.9, 54.5], [55.4, 54.7], [55.4, 54.7],
+      [53.0, 52.9], [50.6, 50.8], [47.9, 48.8], [44.7, 47.2], [40.6, 46.2], [38.1, 46.0],
+      [34.6, 46.0], [31.7, 46.0], [28.4, 46.1], [24.7, 46.2], [20.9, 46.5], [17.1, 46.9],
+      [13.6, 47.5], [10.6, 48.3], [8.1, 49.3], [5.8, 52.1], [5.8, 52.1], [5.8, 54.7],
+      [5.8, 57.3], [6.0, 59.8], [6.3, 62.2], [6.7, 64.5], [7.2, 66.6], [8.4, 70.6],
+      [9.8, 74.0], [11.2, 76.9], [12.4, 79.0], [13.9, 81.2], [15.6, 83.4], [17.6, 85.7],
+      [19.8, 87.9], [22.4, 90.0], [25.1, 91.9], [28.2, 93.6], [31.6, 95.0], [35.2, 96.1],
+      [39.2, 96.8], [43.5, 97.0], [47.8, 96.9], [52.1, 96.5], [56.1, 95.8], [60.0, 95.0],
+      [63.8, 94.0], [67.2, 92.7], [70.5, 91.4], [73.5, 89.9], [76.2, 88.3], [78.7, 86.7],
+      [80.8, 84.9], [82.6, 83.2], [84.0, 81.4], [85.5, 79.5], [86.9, 77.4], [88.3, 75.1],
+      [89.6, 72.8], [90.8, 70.3], [91.8, 67.8], [92.7, 65.3], [93.4, 62.8], [93.9, 60.3],
+      [94.2, 57.8], [94.2, 55.4], [94.2, 55.4]
+    ];
+    const silmaV = [
+      [37.5, 43.6], [37.5, 43.6], [37.2, 46.2], [35.6, 48.5], [33.6, 50.0], [31.3, 51.1],
+      [28.5, 51.6], [25.3, 51.9], [22.3, 52.0], [19.8, 52.0], [17.0, 51.4], [14.9, 50.1],
+      [13.0, 48.3], [12.1, 46.0], [12.3, 43.7], [12.9, 41.5], [14.3, 39.5], [16.4, 38.1],
+      [19.0, 37.1], [21.5, 36.6], [24.2, 36.2], [26.8, 36.1], [29.8, 36.3], [32.3, 37.1],
+      [35.0, 38.5], [36.7, 40.3], [37.4, 42.7], [37.5, 43.6], [37.5, 43.6]
+    ];
+    const pupilliV = [
+      [28.7, 38.2], [28.7, 38.2], [26.5, 38.2], [23.9, 38.4], [21.3, 38.8], [18.6, 39.5],
+      [16.3, 40.7], [15.2, 42.6], [14.8, 44.9], [15.4, 47.1], [17.3, 49.0], [19.9, 49.8],
+      [22.2, 50.1], [24.9, 50.0], [27.3, 49.9], [27.3, 49.9], [26.8, 47.6], [25.8, 45.2],
+      [25.6, 42.8], [26.2, 40.6], [27.7, 38.9], [28.7, 38.2]
+    ];
+    const silmaO = [
+      [83.9, 44.4], [83.9, 44.4], [83.8, 47.0], [83.0, 49.3], [81.3, 50.8], [78.4, 51.7],
+      [74.8, 52.0], [70.5, 52.1], [66.3, 52.0], [63.0, 51.9], [60.3, 51.5], [58.0, 51.1],
+      [55.4, 50.4], [53.1, 49.3], [51.2, 47.8], [50.1, 45.6], [50.1, 42.8], [50.8, 40.6],
+      [52.7, 38.4], [55.0, 37.2], [57.4, 36.2], [60.9, 35.7], [64.6, 35.5], [68.7, 35.5],
+      [72.5, 35.7], [75.4, 36.0], [77.7, 36.6], [79.9, 37.6], [82.2, 39.5], [83.4, 41.7],
+      [83.9, 44.3], [83.9, 44.3]
+    ];
+    const pupilliO = [
+      [74.9, 38.0], [74.9, 38.0], [72.3, 37.8], [69.4, 37.8], [66.7, 37.8], [63.9, 38.1],
+      [61.2, 38.2], [58.2, 38.5], [55.3, 39.7], [53.4, 41.2], [52.4, 43.5], [52.4, 43.5],
+      [53.0, 45.8], [54.3, 47.7], [56.9, 48.6], [60.0, 49.0], [62.6, 49.3], [65.3, 49.4],
+      [68.0, 49.5], [70.9, 49.6], [73.7, 49.5], [73.7, 49.5], [72.1, 47.4], [71.6, 44.8],
+      [71.6, 42.4], [72.4, 40.2], [73.9, 38.5], [74.9, 38.0]
+    ];
+    const nena = [
+      [37.2, 55.1], [37.2, 55.1], [34.2, 55.2], [31.3, 55.5], [29.2, 56.3], [29.2, 56.3],
+      [28.5, 58.7], [29.1, 61.5], [30.7, 64.2], [33.3, 66.1], [35.8, 66.6], [38.0, 66.3],
+      [40.2, 65.5], [42.5, 63.9], [44.6, 61.5], [45.8, 58.9], [45.6, 56.1], [45.6, 56.1],
+      [43.2, 55.2], [40.2, 55.1], [37.2, 55.1], [37.2, 55.1]
+    ];
+    const suu = [
+      [35.9, 59.7], [35.9, 59.7], [35.1, 61.7], [34.6, 63.9], [34.4, 66.1], [34.4, 69.1],
+      [34.6, 71.7], [35.2, 74.4], [35.9, 76.6], [35.9, 76.6], [34.0, 77.9], [34.0, 77.9],
+      [31.8, 77.1], [29.5, 75.9], [27.5, 74.9], [25.2, 75.2], [25.2, 75.2], [25.1, 77.4],
+      [25.1, 77.4], [27.2, 78.7], [30.2, 80.0], [32.8, 80.9], [35.0, 81.4], [38.2, 81.9],
+      [41.8, 82.0], [45.2, 81.7], [48.4, 81.1], [51.5, 80.3], [54.4, 79.5], [56.6, 78.7],
+      [59.0, 77.9], [61.1, 77.1], [63.3, 76.1], [64.6, 74.1], [64.6, 74.1], [62.7, 72.8],
+      [62.7, 72.8], [60.1, 73.7], [57.9, 74.6], [55.3, 75.5], [53.0, 76.2], [50.1, 77.1],
+      [47.6, 77.7], [45.4, 78.0], [42.7, 78.1], [40.3, 78.0], [40.3, 78.0], [39.5, 75.7],
+      [38.7, 73.1], [38.3, 70.3], [38.1, 67.3], [38.2, 64.3], [38.5, 61.6], [38.5, 61.6],
+      [37.3, 59.6], [37.3, 59.6], [35.9, 59.7], [35.9, 59.7]
+    ];
+    const korvaV = [
+      [24.4, 32.3], [27.2, 31.4], [29.2, 29.8], [30.7, 28.0], [31.9, 24.9], [32.0, 22.1],
+      [31.4, 19.4], [30.4, 16.8], [29.3, 14.5], [27.7, 11.8], [25.7, 9.5], [24.1, 8.0],
+      [22.3, 6.5], [20.3, 5.2], [18.3, 4.0], [16.1, 3.1], [13.8, 3.4], [13.8, 3.4],
+      [12.4, 5.8], [12.1, 8.0], [11.9, 10.9], [11.8, 13.5], [12.0, 16.4], [12.4, 18.8],
+      [13.0, 21.4], [14.0, 24.1], [15.6, 26.9], [17.6, 29.5], [20.0, 31.4], [22.9, 32.3],
+      [24.4, 32.3]
+    ];
+    const korvaO = [
+      [64.2, 31.5], [64.2, 31.5], [66.5, 33.2], [68.9, 34.1], [71.2, 34.3], [74.5, 33.6],
+      [76.8, 32.1], [78.8, 30.1], [80.4, 27.8], [81.7, 25.6], [83.0, 22.8], [83.9, 19.9],
+      [84.2, 17.7], [84.4, 15.4], [84.4, 13.0], [84.3, 10.6], [83.8, 8.3], [82.3, 6.6],
+      [82.3, 6.6], [79.5, 6.7], [77.5, 7.7], [75.0, 9.2], [72.8, 10.5], [70.5, 12.3],
+      [68.7, 13.9], [66.9, 15.9], [65.2, 18.3], [63.8, 21.1], [62.8, 24.2], [62.5, 27.3],
+      [63.3, 30.2], [64.2, 31.5], [64.2, 31.5]
+    ];
+
+    return [
+      kasinVedetty(paalaki, h), kasinVedetty(kuono, h),
+      kasinVedetty(korvaV, h * 0.8), kasinVedetty(korvaO, h * 0.8),
+      kasinVedetty(silmaV, h * 0.6), kasinVedetty(silmaO, h * 0.6),
+      kasinVedetty(pupilliV, h * 0.4), kasinVedetty(pupilliO, h * 0.4),
+      kasinVedetty(nena, h * 0.5), kasinVedetty(suu, h * 0.6)
+    ];
+  }
+
+  /* alus, silmukka, renkaat, heinapallo, vyyhti ja optimus ovat
+     toistaiseksi pois kierrosta: funktiot jäävät paikalleen, joten ne saa takaisin
+     lisäämällä nimen tähän listaan.
+
+     spacexMerkki on mukana vaikka SpaceX ja xAI ovat yhdistymässä
+     xSI:ksi: uutta tunnusta ei ole vielä julkaistu, ja kun se tulee,
+     vaihto tapahtuu yhden muototehtaan sisällä. */
+  const MUODOT = [kierre, aalto,
+                  teslanMerkki, xMerkki, grokMerkki, grokBot, spacexMerkki, dogeNaama];
   /* Nämä ovat tunnistettavia muotoja: CSS antaa niille pidemmän
      pysähdyksen kokonaisena. */
-  const TUNNUKSET = new Set([alus, teslanMerkki, xMerkki, spacexMerkki]);
+  const TUNNUKSET = new Set([alus, teslanMerkki, xMerkki, spacexMerkki,
+                             grokMerkki, grokBot, optimus, dogeNaama]);
   /* Leveä ja matala muoto täyttää neliöstä vain kaistaleen, joten se
      näyttäisi muiden rinnalla puolta pienemmältä. Venyttäminen veisi
      tunnistettavuuden, joten sille annetaan isompi laatikko. */
-  const SUURENNOS = new Map([[spacexMerkki, 1.5]]);
+  const SUURENNOS = new Map([[spacexMerkki, 1.5], [optimus, 1.3]]);
 
   /* Vieraat tunnukset osuvat harvemmin kuin abstraktit kuviot:
      tasajaolla tausta alkaisi tuntua mainokselta sen sijaan että se
@@ -1033,7 +1303,8 @@
      siinä ole mitään vierasta. Paino 1 on oletus, joten uutta kuviota
      lisättäessä tähän ei tarvitse koskea. */
   const PAINOT = new Map([
-    [alus, 0.3], [teslanMerkki, 0.3], [spacexMerkki, 0.3]
+    [alus, 0.3], [teslanMerkki, 0.3], [spacexMerkki, 0.5],
+    [grokMerkki, 0.5], [grokBot, 0.5], [optimus, 0.5], [dogeNaama, 0.5]
   ]);
 
   function arvoMuoto() {
