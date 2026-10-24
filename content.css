@@ -281,11 +281,27 @@ header[role="banner"] nav a[aria-current="page"] svg {
    väri annetaan kaikille otsikon kääreille – alla olevat tarkemmat
    säännöt (kortit, kenttä, tabipalkki) voittavat tämän specificityllä. */
 [data-testid="primaryColumn"] div:has(h1),
-[data-testid="primaryColumn"] div:has(h2) {
+[data-testid="primaryColumn"] div:has(h2),
+/* Explore-sivun yläpalkissa ei ole otsikkoa vaan pelkkä hakukenttä,
+   joten yllä olevat säännöt eivät osu siihen. Kääreessä on X:n musta
+   ja yläpehmustetta, joka kurkisti kentän yläpuolelta mustana
+   kaistaleena. Mustaa on useammalla kääretasolla, joten väri
+   annetaan kaikille lomakkeen esivanhemmille eikä vain suoralle
+   emolle. Läpinäkyvä ei käy: palkki on sticky ja sen pitää peittää
+   allensa vierivä sisältö. */
+[data-testid="primaryColumn"] div:has(form[role="search"]) {
   background-color: var(--bg) !important;
 }
+/* Kääreiden sisällä on väli-divejä omine mustine taustoineen. Ne
+   nollataan: uloin kääre maalaa taustan, muut eivät tarvitse omaansa.
+   Lomake ei ole div, joten sen kortin sävy säilyy – ja koska
+   hakuehdotukset ovat lomakkeen sisällä, tämä ei ylety niihin. */
+[data-testid="primaryColumn"] div:has(form[role="search"]) > div {
+  background-color: transparent !important;
+}
 [data-testid="primaryColumn"] div:has(h1),
-[data-testid="primaryColumn"] div:has(h2) {
+[data-testid="primaryColumn"] div:has(h2),
+[data-testid="primaryColumn"] div:has(form[role="search"]) {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -378,15 +394,108 @@ html:is([data-sivu="home"], [data-sivu="ilmoitukset"]) [role="tablist"] [role="t
 
 /* Hakukenttä (Explore ja haku): ei X:n mustaa, vaan kortin sävy ja
    squircle. Kenttä itse ja sen sisäkääreet läpinäkyviksi, jotta
-   kehyksen väri tulee lomakkeelta. */
+   kehyksen väri tulee lomakkeelta.
+
+   Ei overflow: hidden. Pyöristys riittää yksinään, koska sisäkääreet
+   ovat läpinäkyviä eikä mikään niistä maalaa kulmien yli – ja
+   leikkaus veisi mukanaan hakuehdotusten pudotusvalikon, jos X
+   piirtää sen lomakkeen sisään.
+
+   Läpinäkyvyys rajataan pudotusvalikon ulkopuolelle: valikko tarvitsee
+   oman taustansa, tai ehdotukset jäisivät kellumaan sivun päälle
+   lukukelvottomina. */
 form[role="search"] {
   background-color: var(--card) !important;
   border-radius: 14px !important;
-  overflow: hidden !important;
 }
-form[role="search"] div,
+/* Läpinäkyväksi vain ne kääreet jotka sisältävät syötteen. Rooliin
+   perustuva rajaus ei riittänyt: hakuehdotusten valikko on lomakkeen
+   sisällä mutta sitä ei ole merkitty listboxiksi, joten se muuttui
+   läpinäkyväksi ja sivun sisältö näkyi ehdotusten läpi. Syötteen
+   sisältäminen on varma erotin – valikossa ei ole syötettä. */
+form[role="search"] div:has(input),
 form[role="search"] input {
   background-color: transparent !important;
+}
+
+/* Sininen kohdistusreunus pois. X piirtää sen 1 px:n reunaviivana
+   kentän reunaan (mitattuna rgb(29,155,240) kohdassa x=71-72, kortti
+   alkaa 73:sta). Väri nollataan läpinäkyväksi eikä reunusta poisteta,
+   jottei kentän koko muutu klikatessa. Varjo ja outline nollataan
+   samalla, koska X on eri aikoina käyttänyt kaikkia kolmea. */
+form[role="search"],
+form[role="search"] div:has(input) {
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ehdotusten auetessa kenttä ja lista ovat yksi yhtenäinen pinta:
+   vastakkain tulevat kulmat suoriksi. Lista on jo valmiiksi kentän
+   levyinen (73..712 vastaan 73..697 + vierityspalkki). */
+form[role="search"]:has([id^="typeaheadDropdown"]),
+form[role="search"]:has([id^="typeaheadDropdown"]) div:has(input) {
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+/* Sama pyöristys myös X:n omalle pillerille. Fokusoimattomana näkyy
+   lomakkeen muoto (14 px) ja klikattaessa X:n oma, lähes täysin
+   pyöreä pilleri sinisine renkaineen – mitattuna 14 px vastaan noin
+   24 px, mikä näkyi kentän muodon hyppäyksenä. Läpinäkyvälle
+   kääreelle pyöristys ei tee mitään, joten tämä osuu vain siihen
+   elementtiin jonka X oikeasti piirtää. */
+form[role="search"] div:has(input) {
+  border-radius: 14px !important;
+}
+
+/* Hakuehdotusten valikko: oma läpinäkymätön tausta ja sama pyöristys
+   kuin muillakin korteilla. Valikko on lomakkeen suora lapsi joka ei
+   sisällä syötettä; id-valitsin on varmistus siltä varalta että X
+   kääräisee sen syvemmälle. */
+form[role="search"] > div:not(:has(input)),
+form[role="search"] [id^="typeaheadDropdown"],
+/* Valikon ympärillä on vielä oma vierityskehys, jonka X maalaa
+   mustaksi ja pyöristää 8 px:llä. Se on listaa leveämpi, joten
+   mustaa jäi näkyviin ehdotusten reunoille. */
+form[role="search"] div:has([id^="typeaheadDropdown"]) {
+  background-color: var(--card) !important;
+  border-radius: 14px !important;
+}
+
+/* Ylakulmat suoriksi vasta tassa, taustasaannon jalkeen: ylla oleva
+   border-radius on lyhennemerkinta, joka myohempana palauttaisi
+   kaikki nelja kulmaa ja soisi sauman auki uudelleen. Mitattuna
+   listan vasen reuna oli ylarivilla x=86 kun kentan reuna on 73 –
+   noin 17 px:n lovi juuri liittymakohdassa. */
+form[role="search"] div:has([id^="typeaheadDropdown"]),
+form[role="search"] [id^="typeaheadDropdown"] {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  /* X:n oma varjo hohtaa joka suuntaan ja valui kentan alareunan
+     paalle harmaana liukumana. Varjo vain alaspain, eika ylos asti:
+     lista erottuu yha takanaan olevista korteista, jotka ovat samaa
+     savya. */
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* Explore-sivun takaisin-nuoli pois. Se ilmestyy riville vasta kun
+   hakukenttään klikkaa, ja koska kentän sarake on rivin venyvä osa,
+   kenttä kutistui tasan nuolen leveyden verran – mitattuna 642 px ->
+   573 px, oikean reunan pysyessä paikallaan. Työpöydällä nuoli on
+   muutenkin turha: hausta pääsee pois Escapella, klikkaamalla muualle
+   tai viereisistä tabeista.
+
+   Nuoli tunnistetaan rakenteesta eikä tunnisteesta tai käännetystä
+   tekstistä: se on rivin ensimmäinen lapsi, sisältää napin eikä
+   sisällä hakulomaketta. Ratas on rivin viimeinen lapsi eikä siis
+   osu tähän, eikä sarakkeen tyhjä välidiv sisällä nappia.
+
+   Huom: :has() ei kelpaa toisen :has():n sisällä, joten edellinen
+   yritys (":has(+ div:has(form))") oli epäkelpo valitsin ja selain
+   hylkäsi koko säännön. Tässä :has():t ovat eri yhdistelmäosissa. */
+[data-testid="primaryColumn"] div:has(form[role="search"])
+  > div:first-child:has(button):not(:has(form[role="search"])) {
+  display: none !important;
 }
 
 /* Post / Reply -nappi: squircle + korostusväri */

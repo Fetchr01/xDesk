@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X – oma ulkoasu",
-  "version": "0.38.6",
+  "version": "0.38.13",
   "description": "Rauhallisempi x.com: macOS-tyylinen dock, ei reunaviivoja, postaukset sävyerolla, selkeämmät luvut.",
   "permissions": [
     "storage"
