@@ -16,7 +16,9 @@ globalThis.OMA_ASETUKSET = [
   { key: 'countWeight', label: 'Lukujen paksuus',             type: 'range', oletus: 600, min: 400, max: 800,  step: 50, yksikko: '' },
   { key: 'countSize',   label: 'Lukujen koko',                type: 'range', oletus: 13,  min: 11,  max: 16,   step: 0.5, yksikko: 'px' },
   { key: 'actionSpace', label: 'Toimintopalkin väljyys',      type: 'range', oletus: 14,  min: 0,   max: 24,   step: 1,  yksikko: 'px' },
-  { key: 'kalat',       label: 'Kanji-kalat taustalla',       type: 'range', oletus: 4,   min: 0,   max: 10,   step: 1,  yksikko: '' },
+  { key: 'kalat',       label: 'Kanji-kalat taustalla',       type: 'range', oletus: 0,   min: 0,   max: 10,   step: 1,  yksikko: '' },
+  { key: 'piirrokset',  label: 'Piirtyvät muodot taustalla',  type: 'range', oletus: 6,   min: 0,   max: 14,   step: 1,  yksikko: '' },
+  { key: 'taustaMuste', label: 'Taustan sävy',                 type: 'range', oletus: 0.16, min: 0.04, max: 0.5, step: 0.02, yksikko: '' },
 
   {
     key: 'font',

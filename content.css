@@ -31,7 +31,9 @@
   --countWeight: 600;       /* Lukujen paksuus */
   --countSize: 13px;        /* Lukujen koko */
   --actionSpace: 14px;      /* Toimintopalkin väljyys ylä- ja alapuolella */
-  --kalat: 4;               /* Kanji-kalojen määrä taustalla */
+  --kalat: 0;               /* Kanji-kalojen määrä taustalla (0 = pois) */
+  --piirrokset: 6;          /* Piirtyvien muotojen määrä taustalla */
+  --taustaMuste: 0.16;      /* Taustan sävy: kuviot, omat vedot ja laput */
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
 }
 
@@ -46,10 +48,11 @@ body, body *:not(svg):not(path) {
    1. Taustat: tumma pohja, postaukset sävyerolla
    ========================================================= */
 /* Vain html kantaa taustavärin. Body ja sisemmät kääreet jätetään
-   läpinäkyviksi, jotta kanji-kerros (z-index: -1) näkyy niiden takaa
-   – negatiivinen z-index piirtyy juuren taustan päälle mutta muun
-   sisällön alle. Sarake pysyy läpinäkymättömänä, joten kalat uivat
-   aikajanan takana eivätkä tekstin päällä. */
+   läpinäkyviksi, jotta taustakerrokset (kanjit ja piirtyvät muodot,
+   z-index: -1) näkyvät niiden takaa – negatiivinen z-index piirtyy
+   juuren taustan päälle mutta muun sisällön alle. Sarake pysyy
+   läpinäkymättömänä, joten tausta elää aikajanan takana eikä
+   tekstin päällä. */
 html {
   background-color: var(--bg) !important;
 }
@@ -840,7 +843,8 @@ header[role="banner"] nav a[href*="/i/verified-orgs"] {
 
    Sisällön takana uivat hahmot, koottu kala-aiheisista kanjeista.
    Elementit luo content.js; määrä tulee --kalat-muuttujasta, jota
-   säädetään popupista (0 = pois).
+   säädetään popupista. Oletus on 0 eli pois käytöstä – tilalla ovat
+   piirtyvät muodot (osio 10) – mutta kalat heräävät liu'ulla takaisin.
    ========================================================= */
 #oma-kanjit {
   --kalat-maara: var(--kalat);   /* säädin luetaan täältä content.js:ssä */
@@ -909,7 +913,174 @@ header[role="banner"] nav a[href*="/i/verified-orgs"] {
 }
 
 /* =========================================================
-   10. Valinnainen: luvut kokonaan pois
+   10. Piirtyvät muodot taustalla
+
+   Kierteitä, heinäpalloja ja silmukoita, jotka piirtyvät
+   näkyviin ja purkautuvat pois. Elementit luo content.js;
+   määrä tulee --piirrokset-muuttujasta (0 = pois).
+   ========================================================= */
+#oma-piirrokset {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Hidas ajelehtiminen omaan elementtiinsä: piirtoanimaatio on
+   polulla, joten ne eivät ole toistensa tiellä. */
+#oma-piirrokset .oma-piirto {
+  position: absolute;
+  overflow: visible;
+  animation-name: oma-piirto-ajelehdi;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+#oma-piirrokset path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Pala on koko polun mittainen (--pit tulee content.js:stä), joten
+     offsetin siirto piirtää viivan päästä päähän ja purkaa sen. */
+  stroke-dasharray: var(--pit, 0);
+  animation-name: oma-piirto-veto, oma-piirto-hiive;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* Aloitukset on porrastettu viiveellä; ilman backwardsia viiva
+     odottaisi vuoroaan valmiiksi piirrettynä näkyvissä. */
+  animation-fill-mode: backwards;
+}
+
+@keyframes oma-piirto-veto {
+  0%       { stroke-dashoffset: var(--pit, 0); }        /* ei vielä piirretty */
+  30%, 70% { stroke-dashoffset: 0; }                    /* valmis: pitkä pysähdys */
+  100%     { stroke-dashoffset: calc(var(--pit, 0) * -1); }  /* purkautuu alkupäästä */
+}
+
+/* Alus ja Teslan merkki ovat tunnistettavia muotoja, eivät vain
+   viivaa: ne piirtyvät nopeammin ja jäävät selvästi pidemmäksi aikaa
+   kokonaisiksi, jotta muodon ehtii nähdä ennen purkautumista. */
+#oma-piirrokset .oma-tunnus path {
+  animation-name: oma-piirto-tunnus, oma-piirto-hiive;
+}
+@keyframes oma-piirto-tunnus {
+  0%       { stroke-dashoffset: var(--pit, 0); }
+  24%, 82% { stroke-dashoffset: 0; }
+  100%     { stroke-dashoffset: calc(var(--pit, 0) * -1); }
+}
+/* Pehmeät päät: viiva ei ilmesty eikä katoa kierroksen vaihtuessa. */
+@keyframes oma-piirto-hiive {
+  0%, 100% { opacity: 0; }
+  14%, 86% { opacity: var(--taustaMuste); }
+}
+@keyframes oma-piirto-ajelehdi {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #oma-piirrokset { display: none; }
+}
+
+/* =========================================================
+   11. Taustaan piirtäminen ja muistilaput
+
+   Käyttäjän oma jälki taustan tyhjässä tilassa. Kerros on
+   kuvioiden tapaan z-index: -1 eikä ota hiiren osumia, joten
+   kirjoittamista varten on erillinen muokkain sivun päällä.
+   Elementit ja tallennus hoitaa content.js.
+   ========================================================= */
+#oma-taulu {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#oma-taulu .oma-muste {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sama sävy kuin kuvioilla: oma jälki kuuluu samaan taustaan eikä
+   erotu siitä. Voimakkuus tulee --taustaMusteesta, joka säätää
+   molempia yhtä aikaa. */
+#oma-taulu .oma-muste path {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: var(--taustaMuste);
+}
+
+/* Lappu samalla sävyllä. Jos tekstin haluaa luettavammaksi kuin
+   kuviot, tähän voi antaa oman arvonsa --taustaMusteen tilalle. */
+#oma-taulu .oma-lappu {
+  position: absolute;
+  max-width: 260px;
+  color: var(--accent);
+  opacity: var(--taustaMuste);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#oma-lappu-muokkain {
+  position: fixed;
+  z-index: 1002;
+  min-width: 140px;
+  max-width: 260px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background-color: var(--card);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+
+/* Himmeä nurkassa: näkyy vasta kun taululla on jotain, ja
+   kirkastuu kun sitä lähestyy. */
+#oma-taulu-ohjaus {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 1002;
+  display: flex;
+  gap: 6px;
+  opacity: 0.25;
+  transition: opacity 0.2s ease;
+}
+#oma-taulu-ohjaus:hover {
+  opacity: 1;
+}
+#oma-taulu-ohjaus button {
+  padding: 4px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background-color: var(--card);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   12. Valinnainen: luvut kokonaan pois
    Poista kommenttimerkit, jos haluat piilottaa tykkäys- yms. määrät.
    ========================================================= */
 /*
