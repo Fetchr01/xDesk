@@ -949,6 +949,12 @@ header[role="banner"] nav a[href*="/i/verified-orgs"] {
   animation-name: oma-piirto-veto, oma-piirto-hiive;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
+  /* Kesto ja aloitusviive tulevat kuvion omalta elementiltä
+     perittyinä muuttujina: polut syntyvät uudestaan joka
+     kierroksella, ja näin jokainen uusi veto saa saman tahdin
+     ilman että content.js asettaa sitä erikseen. */
+  animation-duration: var(--kesto, 32s);
+  animation-delay: var(--viive, 0s);
   /* Aloitukset on porrastettu viiveellä; ilman backwardsia viiva
      odottaisi vuoroaan valmiiksi piirrettynä näkyvissä. */
   animation-fill-mode: backwards;

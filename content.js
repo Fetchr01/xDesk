@@ -940,23 +940,158 @@
     return [kasinVedetty(kirjain, h), kasinVedetty(sirppi, h * 0.7)];
   }
 
-  const MUODOT = [kierre, heinapallo, silmukka, renkaat, aalto, vyyhti, alus, teslanMerkki];
+  function xMerkki() {
+    const h = 0.55 + Math.random() * 0.4;
+
+    /* X.com:n tunnus, ääriviiva poimittu oikeasta merkistä. Se ei ole
+       kahta ristikkäistä viivaa vaan yksi umpinainen kirjain, jonka
+       sisällä kulkee kapea aukko: laskeva veto menee nousevan takaa ja
+       jättää siihen raon. Juuri rako erottaa sen tavallisesta X:stä,
+       joten se piirretään omana vetonaan. Kulmat ovat kahdennettuja
+       pisteitä, jotta pehmennys ei pyöristä kärkiä pois. */
+    const ulko = [
+      [77.3, 7.6], [82.1, 7.6], [86.9, 7.6], [91.7, 7.6], [91.7, 7.6], [87.2, 12.7],
+      [82.6, 17.8], [78.1, 23.0], [73.6, 28.1], [69.1, 33.3], [64.6, 38.4], [60.0, 43.6],
+      [60.0, 43.6], [64.1, 49.0], [68.3, 54.4], [72.4, 59.9], [76.5, 65.3], [80.6, 70.7],
+      [84.7, 76.2], [88.8, 81.6], [92.9, 87.0], [97.0, 92.4], [97.0, 92.4], [91.2, 92.4],
+      [85.4, 92.4], [79.6, 92.4], [73.8, 92.4], [68.0, 92.4], [68.0, 92.4], [64.2, 87.5],
+      [60.4, 82.5], [56.6, 77.6], [52.9, 72.6], [49.1, 67.7], [45.3, 62.7], [45.3, 62.7],
+      [41.0, 67.7], [36.6, 72.6], [32.3, 77.6], [28.0, 82.5], [23.6, 87.5], [19.3, 92.4],
+      [19.3, 92.4], [14.5, 92.4], [9.7, 92.4], [4.9, 92.4], [4.9, 92.4], [9.1, 87.6],
+      [13.3, 82.8], [17.4, 78.0], [21.6, 73.2], [25.8, 68.4], [30.0, 63.5], [34.2, 58.7],
+      [38.4, 53.9], [38.4, 53.9], [34.5, 48.8], [30.5, 43.6], [26.6, 38.5], [22.7, 33.3],
+      [18.7, 28.2], [14.8, 23.0], [10.9, 17.9], [6.9, 12.7], [3.0, 7.6], [3.0, 7.6],
+      [8.9, 7.6], [14.9, 7.6], [20.8, 7.6], [26.8, 7.6], [32.7, 7.6], [32.7, 7.6],
+      [36.8, 13.0], [40.9, 18.4], [45.0, 23.8], [49.1, 29.3], [53.2, 34.7], [53.2, 34.7],
+      [57.2, 30.2], [61.3, 25.6], [65.3, 21.1], [69.3, 16.6], [73.3, 12.1], [77.3, 7.6],
+      [77.3, 7.6]
+    ];
+    const rako = [
+      [72.2, 84.0], [76.2, 84.0], [80.2, 84.0], [80.2, 84.0], [76.2, 78.7], [72.3, 73.5],
+      [68.3, 68.2], [64.3, 63.0], [60.3, 57.7], [56.4, 52.5], [52.4, 47.2], [48.4, 42.0],
+      [44.4, 36.7], [40.5, 31.5], [36.5, 26.2], [32.5, 21.0], [28.5, 15.7], [28.5, 15.7],
+      [24.2, 15.7], [19.9, 15.7], [19.9, 15.7], [24.0, 21.0], [28.0, 26.2], [32.0, 31.5],
+      [36.0, 36.7], [40.1, 42.0], [44.1, 47.2], [48.1, 52.5], [52.1, 57.7], [56.1, 63.0],
+      [60.2, 68.2], [64.2, 73.5], [68.2, 78.7], [72.2, 84.0], [72.2, 84.0]
+    ];
+
+    return [kasinVedetty(ulko, h), kasinVedetty(rako, h * 0.8)];
+  }
+
+  function spacexMerkki() {
+    const h = 0.5 + Math.random() * 0.35;
+
+    /* SpaceX:n X on aivan toista maata kuin X.comin: kirjaimen nouseva
+       veto jatkuu pitkäksi kaareksi, joka kaartaa sanan yli oikealle ja
+       ohenee kärjeksi. Laskeva veto jää sen alle kahdeksi erilliseksi
+       palaksi, koska kaari katkaisee sen keskeltä – siksi tässä on
+       kolme vetoa eikä kahta. Muoto on leveä ja matala, ei X.comin
+       tavoin lähes neliö. */
+    const ylaveto = [
+      [14.5, 45.3], [14.5, 45.3], [9.1, 45.3], [3.7, 45.3], [3.7, 45.3], [8.0, 48.4],
+      [12.2, 51.5], [16.5, 54.6], [16.5, 54.6], [18.4, 53.4], [20.4, 52.1], [22.4, 50.9],
+      [22.4, 50.9], [18.5, 48.1], [14.5, 45.3], [14.5, 45.3]
+    ];
+    const alaveto = [
+      [30.2, 56.9], [30.2, 56.9], [28.4, 58.2], [26.6, 59.6], [24.8, 60.9], [24.8, 60.9],
+      [29.6, 64.4], [34.4, 67.9], [34.4, 67.9], [39.8, 67.9], [45.3, 67.9], [45.3, 67.9],
+      [40.3, 64.3], [35.2, 60.6], [30.2, 56.9], [30.2, 56.9]
+    ];
+    const kaari = [
+      [97.0, 32.1], [97.0, 32.1], [92.3, 32.5], [87.6, 32.9], [82.9, 33.3], [76.4, 34.4],
+      [70.0, 35.4], [64.2, 36.7], [58.4, 38.1], [53.2, 39.7], [48.0, 41.2], [43.4, 43.0],
+      [38.8, 44.7], [34.8, 46.6], [30.7, 48.4], [27.2, 50.3], [23.8, 52.2], [17.9, 55.9],
+      [13.0, 59.3], [9.1, 62.3], [6.2, 64.9], [4.3, 66.8], [4.3, 66.8], [9.1, 67.4],
+      [14.0, 67.9], [14.0, 67.9], [17.8, 64.5], [21.6, 61.0], [25.6, 58.0], [29.6, 55.1],
+      [33.8, 52.5], [37.9, 50.0], [42.1, 47.8], [46.2, 45.7], [50.4, 43.9], [54.5, 42.1],
+      [58.5, 40.7], [62.5, 39.2], [66.3, 38.1], [70.1, 36.9], [73.7, 36.1], [77.2, 35.2],
+      [83.6, 33.9], [89.1, 33.0], [93.6, 32.4], [97.0, 32.1]
+    ];
+
+    /* Kaari on pitkä ja sileä: sama tärinä kuin lyhyissä vedoissa
+       näkyisi siinä sahalaitana. */
+    return [kasinVedetty(ylaveto, h), kasinVedetty(alaveto, h), kasinVedetty(kaari, h * 0.6)];
+  }
+
+  /* alus ja spacexMerkki ovat toistaiseksi pois kierrosta: funktiot
+     jäävät paikalleen, joten ne saa takaisin lisäämällä nimen tähän
+     listaan. */
+  const MUODOT = [kierre, heinapallo, silmukka, renkaat, aalto, vyyhti,
+                  teslanMerkki, xMerkki];
   /* Nämä ovat tunnistettavia muotoja: CSS antaa niille pidemmän
      pysähdyksen kokonaisena. */
-  const TUNNUKSET = new Set([alus, teslanMerkki]);
+  const TUNNUKSET = new Set([alus, teslanMerkki, xMerkki, spacexMerkki]);
+  /* Leveä ja matala muoto täyttää neliöstä vain kaistaleen, joten se
+     näyttäisi muiden rinnalla puolta pienemmältä. Venyttäminen veisi
+     tunnistettavuuden, joten sille annetaan isompi laatikko. */
+  const SUURENNOS = new Map([[spacexMerkki, 1.5]]);
+
+  /* Vieraat tunnukset osuvat harvemmin kuin abstraktit kuviot:
+     tasajaolla tausta alkaisi tuntua mainokselta sen sijaan että se
+     vain elää taustalla. X.comin oma merkki on poikkeus ja kulkee
+     samalla painolla kuin kuviot – se on tämän sivun oma tunnus eikä
+     siinä ole mitään vierasta. Paino 1 on oletus, joten uutta kuviota
+     lisättäessä tähän ei tarvitse koskea. */
+  const PAINOT = new Map([
+    [alus, 0.3], [teslanMerkki, 0.3], [spacexMerkki, 0.3]
+  ]);
+
+  function arvoMuoto() {
+    const paino = (f) => PAINOT.get(f) ?? 1;
+    const summa = MUODOT.reduce((s, f) => s + paino(f), 0);
+    let osuma = Math.random() * summa;
+    for (const f of MUODOT) {
+      osuma -= paino(f);
+      if (osuma <= 0) return f;
+    }
+    return MUODOT[MUODOT.length - 1];     // liukulukujen pyöristysvara
+  }
 
   /* Uusi muoto, koko ja paikka. Kutsutaan vain kun elementti on
      DOM:issa: getTotalLength tarvitsee piirretyn polun. */
   function asetaPiirros(ui) {
-    const polku = ui.firstChild;
-    const muoto = MUODOT[Math.floor(Math.random() * MUODOT.length)];
-    polku.setAttribute('d', muoto().map(sileaPolku).join(' '));
-    ui.classList.toggle('oma-tunnus', TUNNUKSET.has(muoto));
-    ui.style.setProperty('--pit', polku.getTotalLength().toFixed(1) + 'px');
+    const muoto = arvoMuoto();
+    const tunnus = TUNNUKSET.has(muoto);
+    const vedot = muoto().map(sileaPolku).filter(Boolean);
 
-    const koko = 170 + Math.random() * 230;
+    /* Tunnus saa jokaiselle vedolleen oman polkunsa. Yhteisessä
+       polussa katkoviiva juoksee kaikissa vedoissa samaa vauhtia, ja
+       koska vedot ovat eri mittaisia, lyhyt on valmis kauan ennen
+       pitkää ja katoaa purkautuessa ensimmäisenä. X:n tunnuksella se
+       mitattiin: sisäviiva oli valmis 12 %:n kohdalla kun ääriviiva
+       oli vasta 67 %:ssa. Abstraktissa kuviossa sitä ei huomaa, mutta
+       tunnistettava merkki näyttää siltä ettei se ehdi koskaan
+       valmiiksi. Omana polkuna jokainen veto saa oman pituutensa,
+       jolloin kaikki alkavat ja päättyvät yhtä aikaa. */
+    const osat = tunnus ? vedot : [vedot.join(' ')];
+
+    /* Polut uusitaan joka kierroksella. Saman merkin vetojen on
+       lähdettävä liikkeelle samalla hetkellä, ja tuore elementti
+       aloittaa animaationsa aina alusta – myös hiipumisen, joka
+       vanhaa polkua käytettäessä jäi eri tahtiin vedon kanssa
+       silloin kun tunnus-luokan vaihto vaihtoi animaation nimen. */
+    const koko = (170 + Math.random() * 230) * (SUURENNOS.get(muoto) || 1);
     ui.style.width = koko.toFixed(0) + 'px';
     ui.style.height = koko.toFixed(0) + 'px';
+
+    ui.textContent = '';
+    ui.classList.toggle('oma-tunnus', tunnus);
+    /* Yksikköansa: vector-effect: non-scaling-stroke siirtää myös
+       katkoviivan mitat ruutupikseleihin, mutta getTotalLength antaa
+       viewBox-yksiköitä. Ilman skaalausta pala jää skaalan verran
+       liian lyhyeksi, eikä polku piirry koskaan loppuun asti: 400 px:n
+       kuviosta näkyi vain neljännes, ja se jäi siihen tilaan koko
+       pysähdyksen ajaksi. Mitattuna 200 px:n ruudulla maalattuja
+       pikseleitä oli 722 kun niitä piti olla 1442. */
+    const skaala = koko / PIIRTO_RUUTU;
+    for (const d of osat) {
+      const polku = document.createElementNS(SVG_NS, 'path');
+      // Viivan paksuus pysyy samana, vaikka viewBox venyy eri kokoihin
+      polku.setAttribute('vector-effect', 'non-scaling-stroke');
+      polku.setAttribute('d', d);
+      ui.appendChild(polku);
+      polku.style.setProperty('--pit', (polku.getTotalLength() * skaala).toFixed(1) + 'px');
+    }
     /* Paikka pikseleinä ikkunan sisään, ettei kuvio jää reunaan
        puoliksi leikkautuneeksi. */
     ui.style.left = (Math.random() * Math.max(0, innerWidth - koko)).toFixed(0) + 'px';
@@ -969,26 +1104,30 @@
     ui.setAttribute('class', 'oma-piirto');
     ui.setAttribute('viewBox', `0 0 ${PIIRTO_RUUTU} ${PIIRTO_RUUTU}`);
 
-    const polku = document.createElementNS(SVG_NS, 'path');
-    // Viivan paksuus pysyy samana, vaikka viewBox venyy eri kokoihin
-    polku.setAttribute('vector-effect', 'non-scaling-stroke');
-    ui.appendChild(polku);
-
+    /* Kesto ja aloitusviive annetaan muuttujina, koska polut syntyvät
+       uudestaan joka kierroksella: perittynä jokainen uusi veto saa
+       ne itsestään eikä niitä tarvitse muistaa erikseen. */
     const kesto = 26 + Math.random() * 22;      // s: yksi piirto ja purku
-    polku.style.animationDuration = kesto.toFixed(1) + 's';
+    ui.style.setProperty('--kesto', kesto.toFixed(1) + 's');
     /* Positiivinen viive, ei negatiivinen: negatiivisella muoto
        käynnistyisi keskeltä kierrosta, jolloin sivun avatessa yksi
        niistä olisi jo purkautumassa ennen kuin se on edes piirtynyt.
        Porrastus levittää aloitukset silti eri hetkiin, ja CSS:n
        animation-fill-mode: backwards pitää viivan piilossa odotuksen
        ajan. */
-    polku.style.animationDelay = (kesto * 0.7 * (jarjestys / Math.max(maara, 1))).toFixed(1) + 's';
+    ui.style.setProperty('--viive', (kesto * 0.7 * (jarjestys / Math.max(maara, 1))).toFixed(1) + 's');
     ui.style.animationDuration = (18 + Math.random() * 14).toFixed(1) + 's';
 
-    /* Kierros loppuun -> uusi muoto. Polulla on kaksi animaatiota,
-       joten nimi tarkistetaan, ettei muoto vaihdu kahdesti. */
-    polku.addEventListener('animationiteration', (e) => {
-      if (e.animationName === 'oma-piirto-veto') asetaPiirros(ui);
+    /* Kierros loppuun -> uusi muoto. Tapahtuma kuplii poluista tänne,
+       ja koska saman merkin vedot ovat samassa tahdissa, riittää
+       kuunnella ensimmäistä. Hiipuminen ohitetaan, ettei muoto vaihdu
+       kahdesti, ja ajelehtiminen siksi että se on tämän elementin oma
+       animaatio. Porrastusta tarvitaan vain sivun avatessa. */
+    ui.addEventListener('animationiteration', (e) => {
+      if (e.target !== ui.firstChild) return;
+      if (e.animationName === 'oma-piirto-hiive') return;
+      ui.style.setProperty('--viive', '0s');
+      asetaPiirros(ui);
     });
     return ui;
   }
