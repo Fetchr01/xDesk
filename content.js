@@ -863,6 +863,179 @@
     return ulos;
   }
 
+  /* ---- Töherrykset ja pyhä geometria --------------------------
+     Nämä ovat laskettua viivaa, eivät jäljennöksiä mistään: siksi ne
+     toimivat tällä tekniikalla aina – mitään ei katoa kun varjot ja
+     täytöt jäävät pois, koska viiva on koko muoto. */
+
+  function kultainenKierre() {
+    const h = 0.5 + Math.random() * 0.4;
+
+    /* Fibonaccin spiraali klassisena rakennepiirroksena: kultainen
+       suorakulmio jaettuna neliöihin (21, 13, 8, 5, 3, 2, 1) ja
+       spiraali neljänneskaarina neliöstä toiseen. Jakoviivat ovat
+       mukana, koska juuri ne tekevät kuviosta tunnistettavan
+       rakennelman eivätkä pelkkää simpukkaa. */
+    const M = 92 / 34;                       // 34 x 21 ruutua -> ruutuun
+    const X = (x) => 4 + x * M;
+    const Y = (y) => 50 + (y - 10.5) * M;
+
+    const kaari = (cx, cy, r, alku) => {     // neljänneskierros
+      const ulos = [];
+      for (let t = 0; t <= Math.PI / 2 + 0.01; t += 0.11)
+        ulos.push([X(cx + Math.cos(alku + t) * r), Y(cy + Math.sin(alku + t) * r)]);
+      return ulos;
+    };
+    /* Jokainen kaari alkaa mihin edellinen jäi, joten spiraali on
+       yksi yhtenäinen veto. */
+    const spiraali = [
+      ...kaari(21, 21, 21, Math.PI),
+      ...kaari(21, 13, 13, Math.PI * 1.5),
+      ...kaari(26, 13, 8, 0),
+      ...kaari(26, 16, 5, Math.PI / 2),
+      ...kaari(24, 16, 3, Math.PI),
+      ...kaari(24, 15, 2, Math.PI * 1.5),
+      ...kaari(25, 15, 1, 0)
+    ];
+
+    const viiva = (x1, y1, x2, y2) => monikulmio([[X(x1), Y(y1)], [X(x2), Y(y2)]], 4);
+    const kehys = monikulmio([
+      [X(0), Y(0)], [X(34), Y(0)], [X(34), Y(21)], [X(0), Y(21)], [X(0), Y(0)]
+    ], 5);
+    const jaot = [
+      viiva(21, 0, 21, 21), viiva(21, 13, 34, 13), viiva(26, 13, 26, 21),
+      viiva(21, 16, 26, 16), viiva(24, 13, 24, 16), viiva(24, 15, 26, 15)
+    ];
+
+    return [kasinVedetty(spiraali, h), kasinVedetty(kehys, h * 0.8),
+            ...jaot.map((j) => kasinVedetty(j, h * 0.8))];
+  }
+
+  function elämänkukka() {
+    const h = 0.5 + Math.random() * 0.35;
+
+    /* Elämänsiemen: kuusi ympyrää keskusympyrän ympärillä niin että
+       jokainen kulkee keskipisteen kautta, ja kehä sulkee kuvion.
+       Kahdeksan samanmuotoista vetoa piirtyvät rinnakkain, mikä sopii
+       kuvioon jonka koko idea on toisto. */
+    const R = 22.5;
+    const ympyrä = (cx, cy, r, hajonta) => {
+      const ulos = [];
+      for (let a = 0; a <= Math.PI * 2 + 0.2; a += 0.16)
+        ulos.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      return kasinVedetty(ulos, hajonta);
+    };
+    const vedot = [ympyrä(50, 50, R, h * 0.7)];
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      vedot.push(ympyrä(50 + Math.cos(a) * R, 50 + Math.sin(a) * R, R, h * 0.7));
+    }
+    vedot.push(ympyrä(50, 50, R * 2 + 1, h));
+    return vedot;
+  }
+
+  function viisikanta() {
+    const h = 0.55 + Math.random() * 0.4;
+
+    /* Viisisakarainen tähti yhdellä vedolla, niin kuin se oikeasti
+       töherretään: kärjestä kärkeen joka toisen yli, ja ympyrä
+       ympärille. Kärjet kahdesti, ettei pehmennys pyöristä niitä. */
+    const kärjet = [];
+    for (let i = 0; i <= 5; i++) {
+      const a = -Math.PI / 2 + i * 2 * (Math.PI * 2 / 5);
+      kärjet.push([50 + Math.cos(a) * 38, 50 + Math.sin(a) * 38]);
+    }
+    const tähti = [];
+    for (let i = 0; i < 5; i++) {
+      const [ax, ay] = kärjet[i], [bx, by] = kärjet[i + 1];
+      tähti.push([ax, ay], [ax, ay]);
+      for (let k = 1; k < 5; k++)
+        tähti.push([ax + (bx - ax) * k / 5, ay + (by - ay) * k / 5]);
+    }
+    tähti.push(kärjet[0], kärjet[0]);
+
+    const kehä = [];
+    for (let a = 0; a <= Math.PI * 2 + 0.2; a += 0.14)
+      kehä.push([50 + Math.cos(a) * 44, 50 + Math.sin(a) * 44]);
+
+    return [kasinVedetty(tähti, h * 0.8), kasinVedetty(kehä, h)];
+  }
+
+  function apilasolmu() {
+    const h = 0.5 + Math.random() * 0.4;
+
+    /* Apilasolmu: suljettu käyrä joka risteää itsensä kolmesti.
+       Yksi yhtenäinen veto alusta loppuun, kuin solmu joka
+       piirretään nostamatta kynää. */
+    const pisteet = [];
+    for (let t = 0; t <= Math.PI * 2 + 0.06; t += 0.07) {
+      const x = Math.sin(t) + 2 * Math.sin(2 * t);
+      const y = Math.cos(t) - 2 * Math.cos(2 * t);
+      pisteet.push(hajota(50 + x * 15.2, 50 + y * 15.2, 1.2));
+    }
+    return [pisteet];
+  }
+
+  function aurinko() {
+    const h = 0.6 + Math.random() * 0.4;
+
+    /* Aurinko niin kuin se vihkon marginaaliin piirretään: ympyrä ja
+       eripituisia säteitä. Määrä ja pituudet arvotaan, jotta kahta
+       samanlaista ei tule. */
+    const kehä = [];
+    for (let a = 0; a <= Math.PI * 2 + 0.2; a += 0.15)
+      kehä.push([50 + Math.cos(a) * 20, 50 + Math.sin(a) * 20]);
+
+    const vedot = [kasinVedetty(kehä, h)];
+    const säteitä = 9 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < säteitä; i++) {
+      const a = (i / säteitä) * Math.PI * 2 + Math.random() * 0.25;
+      const alku = 26 + Math.random() * 3;
+      const loppu = 36 + Math.random() * 10;
+      const säde = [];
+      for (let k = 0; k <= 4; k++) {
+        const r = alku + (loppu - alku) * k / 4;
+        säde.push([50 + Math.cos(a) * r, 50 + Math.sin(a) * r]);
+      }
+      vedot.push(kasinVedetty(säde, h * 1.4));
+    }
+    return vedot;
+  }
+
+  function kuunsirppi() {
+    const h = 0.5 + Math.random() * 0.4;
+
+    /* Kuunsirppi yhtenä suljettuna vetona: ulkokaari ympyrää pitkin
+       ja paluu loven sisäkaarta. Kaarien päät on laskettu kahden
+       ympyrän (säteet 34 ja 28, keskipisteet 13 päässä toisistaan)
+       leikkauspisteistä, joten ne osuvat tasan yhteen. Loveen pari
+       tähtitöherrystä. */
+    const sirppi = [];
+    for (let a = 0.913; a <= Math.PI * 2 - 0.913; a += 0.1)
+      sirppi.push([50 + Math.cos(a) * 34, 50 + Math.sin(a) * 34]);
+    for (let a = -1.288; a >= -(Math.PI * 2 - 1.288); a -= 0.12)
+      sirppi.push([63 + Math.cos(a) * 28, 50 + Math.sin(a) * 28]);
+    sirppi.push(sirppi[0]);
+
+    const tähti = (cx, cy, r) => {
+      const ulos = [];
+      for (let i = 0; i <= 4; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 2;
+        const kärki = [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+        ulos.push(kärki, kärki);
+        if (i < 4) {
+          const b = a + Math.PI / 4;
+          ulos.push([cx + Math.cos(b) * r * 0.32, cy + Math.sin(b) * r * 0.32]);
+        }
+      }
+      return ulos;
+    };
+
+    return [kasinVedetty(sirppi, h),
+            kasinVedetty(tähti(77, 42, 5.5), h * 0.5),
+            kasinVedetty(tähti(80, 61, 4), h * 0.5)];
+  }
+
   function alus() {
     const h = 0.6 + Math.random() * 0.5;      // sama alus, eri käsiala
 
@@ -1278,32 +1451,115 @@
     ];
   }
 
-  /* alus, silmukka, renkaat, heinapallo, vyyhti ja optimus ovat
-     toistaiseksi pois kierrosta: funktiot jäävät paikalleen, joten ne saa takaisin
-     lisäämällä nimen tähän listaan.
+  /* Rannikkoviivat asteina [pituus, leveys]. Lähde on Natural Earthin
+     ne_110m_land (public domain), karkein saatavilla oleva aineisto,
+     ja se on pelkistetty Douglas-Peuckerilla 2,5 asteen siedolla:
+     5143 pisteestä jäi 238, eikä sitä pienempää enää tunnistaisi.
+     Etelämanner ja pikkusaaret on jätetty pois. Pisteet ovat asteina
+     eivätkä valmiina koordinaatteina, jotta pallon saa kääntää. */
+  const RANNIKOT = [
+    [[107.0,77.0],[131.3,70.8],[175.7,69.9],[180.0,69.0],[180.0,65.0],[163.5,59.9],[156.8,51.0],[155.9,56.8],[164.5,62.6],[135.1,54.7],[141.4,52.2],[127.5,39.8],[129.1,35.1],[121.6,40.9],[118.0,39.2],[122.4,37.5],[119.2,34.9],[121.7,28.2],[105.9,19.8],[109.3,13.4],[105.2,8.6],[100.1,13.4],[104.2,1.3],[91.4,22.8],[80.3,15.9],[77.5,8.0],[72.6,21.4],[66.4,25.4],[48.0,30.0],[51.8,24.0],[56.4,26.4],[59.8,22.3],[43.5,12.6],[32.4,29.9],[42.7,11.7],[51.0,10.6],[39.2,-4.7],[40.8,-14.7],[32.2,-28.8],[25.8,-33.9],[18.4,-34.1],[11.8,-18.1],[13.7,-10.7],[9.4,3.7],[-9.0,4.8],[-16.6,12.2],[-17.0,21.9],[-5.9,35.8],[9.5,37.4],[19.1,30.3],[33.8,31.0],[36.2,36.7],[26.2,39.5],[41.7,42.0],[36.7,45.2],[39.1,47.3],[30.7,46.6],[22.5,36.4],[13.1,45.7],[18.5,40.2],[16.1,38.0],[8.9,44.4],[-2.1,36.7],[-8.9,36.9],[-9.4,43.0],[-1.4,44.0],[-4.6,48.7],[8.1,53.5],[8.5,57.1],[19.7,54.4],[29.1,60.0],[21.3,60.7],[25.4,65.1],[22.2,65.7],[12.9,55.4],[5.0,62.0],[24.5,71.0],[41.1,67.5],[33.2,66.6],[37.0,63.8],[43.5,68.6],[68.5,68.1],[66.7,71.0],[72.6,72.8],[72.4,66.2],[74.7,72.8],[107.0,77.0]],
+    [[-90.5,69.5],[-81.3,67.6],[-93.2,62.0],[-92.3,57.1],[-82.3,55.1],[-79.9,51.2],[-78.1,62.3],[-73.8,62.4],[-67.6,58.2],[-64.6,60.3],[-55.7,52.1],[-71.1,46.8],[-65.1,49.2],[-59.8,45.9],[-76.3,39.2],[-81.3,31.4],[-80.4,25.2],[-84.1,30.1],[-96.6,28.3],[-96.3,19.3],[-87.1,21.5],[-88.9,15.9],[-83.4,15.3],[-81.4,8.8],[-71.8,12.4],[-71.7,9.1],[-69.9,12.2],[-61.9,10.7],[-50.4,-0.1],[-34.7,-7.3],[-40.9,-21.9],[-47.6,-24.9],[-53.8,-34.4],[-58.4,-33.9],[-56.8,-36.9],[-65.1,-41.1],[-71.0,-53.8],[-75.6,-46.6],[-70.2,-19.8],[-81.2,-6.1],[-78.2,8.3],[-103.5,18.3],[-114.8,31.8],[-109.4,23.2],[-112.2,24.7],[-124.4,40.3],[-122.8,49.0],[-134.1,58.1],[-150.6,61.3],[-164.8,54.4],[-157.0,58.9],[-166.1,61.5],[-160.8,64.8],[-168.1,65.7],[-156.6,71.4],[-108.9,67.4],[-96.1,67.3],[-95.2,71.9],[-90.5,69.5]],
+    [[143.6,-13.8],[153.1,-26.1],[150.0,-37.4],[140.6,-38.0],[137.8,-32.9],[131.3,-31.5],[115.0,-34.2],[114.1,-21.8],[132.4,-11.1],[140.2,-17.7],[142.5,-10.7],[143.6,-13.8]],
+    [[-27.1,83.5],[-20.8,82.7],[-31.9,82.2],[-12.2,81.3],[-20.0,80.2],[-19.4,74.3],[-26.4,70.2],[-22.3,70.1],[-39.8,65.5],[-43.4,60.1],[-51.6,63.6],[-54.0,67.2],[-50.9,69.9],[-58.6,75.5],[-73.3,78.0],[-27.1,83.5]],
+    [[-68.5,83.1],[-61.9,82.6],[-80.6,76.2],[-89.5,76.5],[-81.8,80.5],[-91.6,81.9],[-68.5,83.1]],
+    [[-86.6,73.2],[-61.9,66.9],[-68.0,66.3],[-66.2,61.9],[-77.7,64.2],[-72.9,67.7],[-89.9,71.2],[-86.6,73.2]],
+    [[134.1,-1.2],[144.6,-3.9],[150.7,-10.6],[137.6,-8.4],[130.5,-0.9],[134.1,-1.2]],
+    [[117.9,1.8],[116.1,-4.0],[109.1,-0.5],[116.7,6.9],[117.9,1.8]],
+    [[50.1,-13.6],[47.1,-24.9],[44.0,-25.0],[44.4,-16.2],[50.1,-13.6]],
+    [[-3.0,58.6],[1.4,51.3],[-5.2,50.0],[-2.9,54.0],[-6.1,56.8],[-3.0,58.6]],
+    [[18.3,79.7],[21.5,79.0],[15.9,76.8],[10.4,79.7],[18.3,79.7]],
+    [[-175.0,66.6],[-169.9,66.0],[-180.0,65.0],[-180.0,69.0],[-175.0,66.6]],
+    [[174.6,-36.2],[178.5,-37.7],[175.2,-41.7],[172.6,-34.5],[174.6,-36.2]],
+    [[57.5,70.7],[51.5,72.0],[68.9,76.5],[58.5,74.3],[57.5,70.7]],
+    [[125.2,1.4],[120.2,0.2],[123.2,-5.3],[121.0,-2.6],[119.4,-5.4],[120.0,0.6],[125.2,1.4]]
+  ];
+
+  function maapallo() {
+    const h = 0.5 + Math.random() * 0.4;
+    const SADE = 44;
+    const AST = Math.PI / 180;
+
+    /* Keskipituuspiiri arvotaan, mutta ei Tyynenmeren kohdalle:
+       siellä etupuolisko on lähes pelkkää vettä eikä pallo näyttäisi
+       maapallolta vaan tyhjältä ympyrältä. */
+    const keski = -100 + Math.random() * 220;
+    const kallistus = (8 + Math.random() * 20) * AST;
+    const ck = Math.cos(kallistus), sk = Math.sin(kallistus);
+
+    /* Pallon pinnan piste ruudulle. Kolmas arvo kertoo onko piste
+       etupuolella: takapuoli jätetään piirtämättä, jolloin muoto
+       lukee umpinaisena pallona. */
+    const pinta = (lon, lat) => {
+      const la = lat * AST, lo = (lon - keski) * AST;
+      const x = Math.cos(la) * Math.sin(lo);
+      const y = Math.sin(la);
+      const z = Math.cos(la) * Math.cos(lo);
+      return [50 + x * SADE, 50 - (y * ck - z * sk) * SADE, y * sk + z * ck];
+    };
+
+    /* Ääriviiva katkeaa pallon reunaan. Näkyvät pätkät erotellaan
+       omiksi vedoikseen, muuten viiva hyppäisi reunan yli toiselle
+       puolelle. Kokonaan näkyvä ranta suljetaan renkaaksi. */
+    const näkyvät = (asteet) => {
+      const ulos = [];
+      let pala = [], piiloon = false;
+      for (const [lon, lat] of asteet) {
+        const [x, y, z] = pinta(lon, lat);
+        if (z > 0.03) pala.push([x, y]);
+        else { piiloon = true; if (pala.length) { ulos.push(pala); pala = []; } }
+      }
+      if (pala.length) ulos.push(pala);
+      if (!piiloon && ulos.length === 1 && ulos[0].length > 2) ulos[0].push(ulos[0][0]);
+      return ulos.filter((p) => p.length >= 3);
+    };
+
+    const kehä = [];
+    for (let a = 0; a <= Math.PI * 2 + 0.2; a += 0.13)
+      kehä.push([50 + Math.cos(a) * SADE, 50 + Math.sin(a) * SADE]);
+
+    const vedot = [kasinVedetty(kehä, h)];
+
+    /* Päiväntasaaja kaarena: ilman sitä ympyrä maapalloineen voisi
+       yhtä hyvin olla litteä kartta. Yksi kaari riittää vihjeeksi. */
+    const tasaaja = [];
+    for (let lon = -180; lon <= 180; lon += 4) tasaaja.push([lon, 0]);
+    for (const pala of näkyvät(tasaaja)) vedot.push(kasinVedetty(pala, h * 0.5));
+
+    for (const ranta of RANNIKOT)
+      for (const pala of näkyvät(ranta)) vedot.push(kasinVedetty(pala, h * 0.55));
+
+    return vedot;
+  }
+
+  /* Kierrosta pois mutta tallessa: alus, silmukka, renkaat,
+     heinapallo, vyyhti, optimus, dogeNaama, maapallo sekä töherrykset
+     kultainenKierre, elämänkukka, viisikanta, apilasolmu, aurinko ja
+     kuunsirppi. Funktiot jäävät paikalleen, joten minkä tahansa saa
+     takaisin lisäämällä nimen tähän listaan.
 
      spacexMerkki on mukana vaikka SpaceX ja xAI ovat yhdistymässä
      xSI:ksi: uutta tunnusta ei ole vielä julkaistu, ja kun se tulee,
      vaihto tapahtuu yhden muototehtaan sisällä. */
   const MUODOT = [kierre, aalto,
-                  teslanMerkki, xMerkki, grokMerkki, grokBot, spacexMerkki, dogeNaama];
+                  teslanMerkki, xMerkki, grokMerkki, grokBot, spacexMerkki];
   /* Nämä ovat tunnistettavia muotoja: CSS antaa niille pidemmän
-     pysähdyksen kokonaisena. */
+     pysähdyksen kokonaisena, jotta merkin ehtii nähdä. Töherrykset
+     eivät kuulu tähän – niiden ei tarvitse seistä esillä. */
   const TUNNUKSET = new Set([alus, teslanMerkki, xMerkki, spacexMerkki,
-                             grokMerkki, grokBot, optimus, dogeNaama]);
+                             grokMerkki, grokBot, optimus, dogeNaama,
+                             maapallo]);
   /* Leveä ja matala muoto täyttää neliöstä vain kaistaleen, joten se
      näyttäisi muiden rinnalla puolta pienemmältä. Venyttäminen veisi
      tunnistettavuuden, joten sille annetaan isompi laatikko. */
   const SUURENNOS = new Map([[spacexMerkki, 1.5], [optimus, 1.3]]);
 
-  /* Vieraat tunnukset osuvat harvemmin kuin abstraktit kuviot:
+  /* Tunnukset osuvat harvemmin kuin kuviot ja töherrykset:
      tasajaolla tausta alkaisi tuntua mainokselta sen sijaan että se
-     vain elää taustalla. X.comin oma merkki on poikkeus ja kulkee
-     samalla painolla kuin kuviot – se on tämän sivun oma tunnus eikä
-     siinä ole mitään vierasta. Paino 1 on oletus, joten uutta kuviota
+     vain elää taustalla. Paino 1 on oletus, joten uutta kuviota
      lisättäessä tähän ei tarvitse koskea. */
   const PAINOT = new Map([
-    [alus, 0.3], [teslanMerkki, 0.3], [spacexMerkki, 0.5],
+    [alus, 0.3], [teslanMerkki, 0.3], [xMerkki, 0.5], [spacexMerkki, 0.5],
     [grokMerkki, 0.5], [grokBot, 0.5], [optimus, 0.5], [dogeNaama, 0.5]
   ]);
 
@@ -1323,18 +1579,16 @@
   function asetaPiirros(ui) {
     const muoto = arvoMuoto();
     const tunnus = TUNNUKSET.has(muoto);
-    const vedot = muoto().map(sileaPolku).filter(Boolean);
 
-    /* Tunnus saa jokaiselle vedolleen oman polkunsa. Yhteisessä
-       polussa katkoviiva juoksee kaikissa vedoissa samaa vauhtia, ja
-       koska vedot ovat eri mittaisia, lyhyt on valmis kauan ennen
-       pitkää ja katoaa purkautuessa ensimmäisenä. X:n tunnuksella se
-       mitattiin: sisäviiva oli valmis 12 %:n kohdalla kun ääriviiva
-       oli vasta 67 %:ssa. Abstraktissa kuviossa sitä ei huomaa, mutta
-       tunnistettava merkki näyttää siltä ettei se ehdi koskaan
-       valmiiksi. Omana polkuna jokainen veto saa oman pituutensa,
-       jolloin kaikki alkavat ja päättyvät yhtä aikaa. */
-    const osat = tunnus ? vedot : [vedot.join(' ')];
+    /* Jokainen veto saa oman polkunsa. Yhteisessä polussa katkoviiva
+       juoksisi kaikissa vedoissa samaa vauhtia, jolloin lyhyt veto on
+       valmis kauan ennen pitkää ja katoaa purkautuessa ensimmäisenä –
+       X:n tunnuksella mitattuna sisäviiva oli valmis 12 %:n kohdalla
+       kun ääriviiva oli vasta 67 %:ssa. Omana polkuna jokainen veto
+       etenee suhteessa omaan pituuteensa, jolloin kaikki alkavat ja
+       päättyvät yhtä aikaa. Tämä koskee kaikkia muotoja: aiemmin vain
+       tunnuksia, mutta monivetoiset töherrykset tarvitsevat samaa. */
+    const osat = muoto().map(sileaPolku).filter(Boolean);
 
     /* Polut uusitaan joka kierroksella. Saman merkin vetojen on
        lähdettävä liikkeelle samalla hetkellä, ja tuore elementti
@@ -1387,13 +1641,11 @@
        animation-fill-mode: backwards pitää viivan piilossa odotuksen
        ajan. */
     ui.style.setProperty('--viive', (kesto * 0.7 * (jarjestys / Math.max(maara, 1))).toFixed(1) + 's');
-    ui.style.animationDuration = (18 + Math.random() * 14).toFixed(1) + 's';
 
     /* Kierros loppuun -> uusi muoto. Tapahtuma kuplii poluista tänne,
        ja koska saman merkin vedot ovat samassa tahdissa, riittää
        kuunnella ensimmäistä. Hiipuminen ohitetaan, ettei muoto vaihdu
-       kahdesti, ja ajelehtiminen siksi että se on tämän elementin oma
-       animaatio. Porrastusta tarvitaan vain sivun avatessa. */
+       kahdesti. Porrastusta tarvitaan vain sivun avatessa. */
     ui.addEventListener('animationiteration', (e) => {
       if (e.target !== ui.firstChild) return;
       if (e.animationName === 'oma-piirto-hiive') return;

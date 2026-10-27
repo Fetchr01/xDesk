@@ -1036,14 +1036,10 @@ header[role="banner"] nav a[href*="/i/verified-orgs"] {
   pointer-events: none;
 }
 
-/* Hidas ajelehtiminen omaan elementtiinsä: piirtoanimaatio on
-   polulla, joten ne eivät ole toistensa tiellä. */
+/* Kuvio pysyy paikallaan: liike on vain piirtyvässä viivassa. */
 #oma-piirrokset .oma-piirto {
   position: absolute;
   overflow: visible;
-  animation-name: oma-piirto-ajelehdi;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
 }
 
 #oma-piirrokset path {
@@ -1090,10 +1086,6 @@ header[role="banner"] nav a[href*="/i/verified-orgs"] {
 @keyframes oma-piirto-hiive {
   0%, 100% { opacity: 0; }
   14%, 86% { opacity: var(--taustaMuste); }
-}
-@keyframes oma-piirto-ajelehdi {
-  0%, 100% { translate: 0 0; }
-  50%      { translate: 0 -14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
